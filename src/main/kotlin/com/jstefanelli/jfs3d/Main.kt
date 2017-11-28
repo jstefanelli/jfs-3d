@@ -27,8 +27,7 @@ class Main(){
 
     private fun makeShaders(): Boolean{
         val shader0 = """
-            #version 120
-
+			#version 120
             attribute vec3 aPos;
             attribute vec4 aCol;
 
@@ -43,9 +42,8 @@ class Main(){
 
             """
         val shader1 = """
-            #version 120
-
-            veryng vec4 vCol;
+			#version 120
+            varying vec4 vCol;
 
             void main(){
                 gl_FragColor = vCol;
@@ -59,7 +57,7 @@ class Main(){
         glShaderSource(vShader, shader0)
         glCompileShader(vShader)
         val vertexs = glGetShaderi(vShader, GL_COMPILE_STATUS)
-        if(vertexs != GL_NO_ERROR){
+        if(vertexs == GL_FALSE){
             System.err.println("Vertex Shader error: " + glGetShaderInfoLog(vShader))
             return false
         }
@@ -67,7 +65,7 @@ class Main(){
         glShaderSource(fShader, shader1)
         glCompileShader(fShader)
         val fragments = glGetShaderi(fShader, GL_COMPILE_STATUS)
-        if(fragments != GL_NO_ERROR){
+        if(fragments == GL_FALSE){
             System.err.println("Fragment Shader error: " + glGetShaderInfoLog(fShader))
             return false
         }
@@ -77,7 +75,7 @@ class Main(){
         glLinkProgram(program)
         val programs = glGetProgrami(program, GL_LINK_STATUS)
 
-        if(programs != GL_NO_ERROR){
+        if(programs == GL_FALSE){
             System.err.println("Link error: " + glGetProgramInfoLog(program))
             return false
         }
@@ -122,6 +120,8 @@ class Main(){
         if(!glfwInit())
             throw IllegalStateException("GLFW Init failed")
 
+		//glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE)
+
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE)
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE)
 
@@ -135,7 +135,7 @@ class Main(){
 
         glfwShowWindow(window)
 
-        loop()
+	    loop()
     }
 
     private fun loop(){
@@ -149,12 +149,16 @@ class Main(){
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
+	    System.out.println("GL Version: " + glGetString(GL_VERSION))
+
         if(!makeShaders()){
             glfwDestroyWindow(window)
             return
         }
 
         makeBuffers()
+
+
 
         var mat = Matrix4f()
         mat.perspective(90.0f, 4.0f / 3.0f, 0.1f, 10f)
@@ -175,6 +179,9 @@ class Main(){
         System.out.println("Ready to render")
 
         while (!glfwWindowShouldClose(window)){
+
+	        glfwPollEvents();
+
             glClear(GL_COLOR_BUFFER_BIT.or(GL_DEPTH_BUFFER_BIT))
 
 
