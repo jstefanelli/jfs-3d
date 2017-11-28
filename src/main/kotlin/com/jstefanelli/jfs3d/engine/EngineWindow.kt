@@ -58,7 +58,7 @@ class EngineWIndow(title: String?){
 	var width : Int = 800
 		get(){
 			if(window == 0L)
-				return -1
+				return field
 			val width = intArrayOf(-1)
 			glfwGetWindowSize(window, width, null)
 			field = width[0]
@@ -76,7 +76,7 @@ class EngineWIndow(title: String?){
 	var height: Int = 600
 		get(){
 			if(window == 0L)
-				return -1
+				return field
 			val height = intArrayOf(-1)
 			glfwGetWindowSize(window, null, height)
 			field = height[0]
@@ -149,7 +149,7 @@ class EngineWIndow(title: String?){
 		glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE)
 		glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE)
 
-		window = glfwCreateWindow(800, 600, "SaS", MemoryUtil.NULL, MemoryUtil.NULL)
+		window = glfwCreateWindow(if(width == -1) 800 else width, if(height == -1) 600 else height, title, MemoryUtil.NULL, MemoryUtil.NULL)
 		if(window == MemoryUtil.NULL)
 			throw RuntimeException("Failed to create window")
 
@@ -185,9 +185,17 @@ class EngineWIndow(title: String?){
 				glClear(GL_COLOR_BUFFER_BIT.or(GL_DEPTH_BUFFER_BIT))
 
 				drawCb?.draw()
-
+				if(window == 0L)
+					break
 				glfwSwapBuffers(window)
 			}
+		}
+	}
+
+	fun close(){
+		if(window != 0L) {
+			glfwDestroyWindow(window)
+			window = 0L
 		}
 	}
 
