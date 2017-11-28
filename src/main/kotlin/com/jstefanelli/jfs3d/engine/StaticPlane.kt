@@ -15,7 +15,7 @@ class StaticPlane(var color: Vector3f){
 	var vbo: Int = 0
 	var mvp: FloatBuffer = BufferUtils.createFloatBuffer(16)
 
-	var positionY: Float = -1f
+	var positionY: Float = -.2f
 
 	fun load(){
 		if(loaded)
@@ -33,17 +33,19 @@ class StaticPlane(var color: Vector3f){
 				.5f, 0f, .5f
 		), GL_STATIC_DRAW)
 
-		var p = Matrix4f()
-		p.perspective(World.fov, World.currentWindow!!.width.toFloat() / World.currentWindow!!.height.toFloat(), 0.01f, 100f)
-		var v = Matrix4f()
-		v.lookAt(Vector3f(0f, 0f, 0f), Vector3f(0f, 0f, -1f), Vector3f(0f, 1f, 0f))
-		var m = Matrix4f()
-		v.identity()
-		v.scale(100f, 0f, 100f)
-		v.translate(0f, positionY, 0f)
 
-		var mvpMat = Matrix4f()
-		v.mul(v, mvpMat)
+		val p = Matrix4f()
+		val ratio = World.currentWindow!!.width.toFloat() / World.currentWindow!!.height.toFloat()
+		p.perspective(Math.toRadians(World.fov.toDouble()).toFloat(), ratio, 0.1f, 100f)
+		val v = Matrix4f()
+		v.lookAt(Vector3f(0f, 0f, 0f), Vector3f(0f, 0f, -1f), Vector3f(0f, 1f, 0f))
+		val m = Matrix4f()
+		m.identity()
+		m.translate(0f, positionY, 0f)
+		m.scale(10f, 0f, 10f)
+
+		val mvpMat = Matrix4f()
+		v.mul(m, mvpMat)
 		p.mul(mvpMat, mvpMat)
 
 		mvpMat.get(mvp)
@@ -52,10 +54,13 @@ class StaticPlane(var color: Vector3f){
 
 	fun draw(){
 		val c: ColorShader = World.color ?: return
+
+		glUseProgram(c.programId)
 		glUniformMatrix4fv(c.uMvpLoc, false, mvp)
 		glUniform4f(c.uColLoc, color.x, color.y, color.z, 1.0f)
 
 		glEnableVertexAttribArray(c.aPosLoc)
+
 		glBindBuffer(GL_ARRAY_BUFFER, vbo)
 		glVertexAttribPointer(c.aPosLoc, 3, GL_FLOAT, false, 0, 0)
 
