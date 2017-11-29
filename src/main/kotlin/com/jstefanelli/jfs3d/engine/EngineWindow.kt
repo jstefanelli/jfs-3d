@@ -12,7 +12,7 @@ interface DrawCallback{
 	fun draw()
 }
 
-class EngineWIndow(title: String?){
+class EngineWindow(title: String?){
 	var title: String = "JEngine JV"
 		private set
 

@@ -6,7 +6,7 @@ import org.lwjgl.opengl.GL11.*
 
 class Main(){
 
-	private var window: EngineWIndow? = null
+	private var window: EngineWindow? = null
 
 	private var loaded = false
 
@@ -19,6 +19,8 @@ class Main(){
 
 		glEnable(GL_BLEND)
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
+		glViewport(0, 0, window?.width ?: 0, window?.height ?: 0)
 
 		World.currentWindow = window
 		World.color = ColorShader()
@@ -45,9 +47,9 @@ class Main(){
 	}
 
     init{
-		window = EngineWIndow("JFS-3D")
-	    window?.width = 1280
-	    window?.height = 720
+		window = EngineWindow("JFS-3D")
+	    window?.width = 640
+	    window?.height = 480
 	    window?.make()
 
 	    window?.drawCb = object: DrawCallback {
