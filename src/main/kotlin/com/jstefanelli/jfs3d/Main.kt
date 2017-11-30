@@ -1,12 +1,11 @@
-package com.jstefanelli.jfs3d
+	package com.jstefanelli.jfs3d
 
 import com.jstefanelli.jfs3d.engine.*
-import org.joml.Quaternionf
-import org.joml.Vector3f
-import org.joml.Vector4f
 import org.lwjgl.opengl.GL11.*
+import java.io.File
+import java.io.FileInputStream
 
-class Main(){
+    class Main(){
 
 	private var window: EngineWindow? = null
 
@@ -14,11 +13,23 @@ class Main(){
 
 	private var lastTime: Long = 0
 	private var frames: Int = 0
+	private var map: Map? = null
 
 	private fun Load(){
 		if(window == null)
 			return
 
+		System.out.println("Write map: ")
+
+		val f = File("map.jmp")
+
+        map = if(f.exists()) {
+            Map(FileInputStream(f))
+        }else {
+            Map(System.`in`, true)
+        }
+
+		map?.parse()
 		glEnable(GL_DEPTH_TEST)
 		glDepthFunc(GL_LEQUAL)
 
@@ -41,8 +52,6 @@ class Main(){
 		}
 		World.floor!!.load()
 
-
-
 		World.cube = Cube()
 		val cube: Cube = World.cube ?: return
 		cube.load()
@@ -54,12 +63,7 @@ class Main(){
 		if(!loaded)
 			Load()
 
-		World.floor?.drawAt(Vector3f(0f, -0.5f, 0f), Vector4f(0.4f, 0.4f, 0.5f, 1.0f))
-        World.floor?.drawAt(Vector3f(0f, 0.5f, 0f), Vector4f(0.4f, 0.4f, 0.5f, 1.0f))
-		World.cube?.drawColorAt(Vector3f(-1f, 0f, 0f), Vector4f(0f, 0f, 1f, 1f))
-        World.cube?.drawColorAt(Vector3f(-1f, 0f, -1f), Vector4f(0f, 0f, 1f, 1f))
-        World.cube?.drawColorAt(Vector3f(1f, 0f, 0f), Vector4f(0f, 0f, 1f, 1f))
-        World.cube?.drawColorAt(Vector3f(1f, 0f, -1f), Vector4f(0f, 0f, 1f, 1f))
+		map?.drawMap()
 
         if(lastTime == 0L)
             lastTime = System.currentTimeMillis()

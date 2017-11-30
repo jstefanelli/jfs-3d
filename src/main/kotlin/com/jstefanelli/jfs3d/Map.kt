@@ -1,9 +1,11 @@
 package com.jstefanelli.jfs3d
 
+import com.jstefanelli.jfs3d.engine.World
 import org.joml.Vector3f
 import org.joml.Vector4f
 import java.io.InputStream
 import java.util.*
+import java.util.regex.Pattern
 import kotlin.collections.ArrayList
 
 val floatValuePattern = "([0-9.\\-f]+)"
@@ -16,11 +18,11 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false) {
     private var ceilColor = Vector4f(0.3f, 0.3f, 0.3f, 1f)
 
     companion object {
-        private val cubeColor = Regex("cc +$floatValuePattern +$floatValuePattern +$floatValuePattern +$floatValuePattern")
-        private val cubeRegex = Regex("c +$floatValuePattern +$floatValuePattern +$floatValuePattern")
-        private val floorRegex = Regex("fl +$floatValuePattern +$floatValuePattern +$floatValuePattern +$floatValuePattern")
-        private val ceilingRegex = Regex("ce +$floatValuePattern +$floatValuePattern +$floatValuePattern +$floatValuePattern")
-        private val overRegex = Regex("over")
+        private val cubeColor = Pattern.compile("cc +$floatValuePattern +$floatValuePattern +$floatValuePattern +$floatValuePattern")
+        private val cubeRegex = Pattern.compile("c +$floatValuePattern +$floatValuePattern +$floatValuePattern")
+        private val floorRegex = Pattern.compile("fl +$floatValuePattern +$floatValuePattern +$floatValuePattern +$floatValuePattern")
+        private val ceilingRegex = Pattern.compile("ce +$floatValuePattern +$floatValuePattern +$floatValuePattern +$floatValuePattern")
+        private val overRegex = Pattern.compile("over")
     }
 
     fun parse(){
@@ -31,11 +33,12 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false) {
                 break
             }
             val line: String = reader.nextLine()
-            if(overRegex.matches(line)){
+            if(overRegex.matcher(line).matches()){
                 break
             }
-            if(cubeColor.matches(line)){
-                val res = cubeColor.toPattern().matcher(line).toMatchResult()
+            if(cubeColor.matcher(line).matches()){
+                val res = cubeColor.matcher(line)
+                res.find()
                 val r = res.group(1).toFloat()
                 val g = res.group(2).toFloat()
                 val b = res.group(3).toFloat()
@@ -43,18 +46,20 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false) {
                 lastColor = Vector4f(r, g, b, a)
                 continue
             }
-            if(cubeRegex.matches(line)) {
-                val res = cubeRegex.toPattern().matcher(line).toMatchResult()
-                val x = res.group(0).toFloat()
-                val y = res.group(1).toFloat()
-                val z = res.group(2).toFloat()
+            if(cubeRegex.matcher(line).matches()) {
+                val res = cubeRegex.matcher(line)
+                res.find()
+                val x = res.group(1).toFloat()
+                val y = res.group(2).toFloat()
+                val z = res.group(3).toFloat()
                 val pos = Vector3f(x, y, z)
                 val pair = Pair<Vector3f, Vector4f>(pos, lastColor)
                 list.add(pair)
                 continue
             }
-            if(floorRegex.matches(line)){
-                val res = floorRegex.toPattern().matcher(line).toMatchResult()
+            if(floorRegex.matcher(line).matches()){
+                val res = floorRegex.matcher(line)
+                res.find()
                 val r = res.group(1).toFloat()
                 val g = res.group(2).toFloat()
                 val b = res.group(3).toFloat()
@@ -62,9 +67,10 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false) {
                 floorColor = Vector4f(r, g, b, a)
                 continue
             }
-            if(ceilingRegex.matches(line)){
+            if(ceilingRegex.matcher(line).matches()){
 
-                val res = ceilingRegex.toPattern().matcher(line).toMatchResult()
+                val res = ceilingRegex.matcher(line)
+                res.find()
                 val r = res.group(1).toFloat()
                 val g = res.group(2).toFloat()
                 val b = res.group(3).toFloat()
@@ -73,6 +79,15 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false) {
                 continue
             }
         }
+    }
 
+    fun drawMap(){
+        val floor = World.floor ?: return
+        val cube = World.cube ?: return
+        floor.drawAt(Vector3f(0f, -0.5f, 0f), floorColor)
+        floor.drawAt(Vector3f(0f, 0.5f, 0f), ceilColor)
+        for(p in list){
+            cube.drawColorAt(p.first, p.second)
+        }
     }
 }
