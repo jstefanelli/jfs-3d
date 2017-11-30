@@ -93,7 +93,7 @@ class Main(){
         @JvmStatic
         fun main(args: Array<String>)
         {
-            val wind = Main()
+            Main()
         }
     }
 
