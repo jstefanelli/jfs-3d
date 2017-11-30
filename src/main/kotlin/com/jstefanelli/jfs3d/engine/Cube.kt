@@ -17,6 +17,7 @@ class Cube{
     private var projection: Matrix4f = Matrix4f()
 
     private val fb = BufferUtils.createFloatBuffer(16)
+    private val fbUv = BufferUtils.createFloatBuffer(9)
 
     fun load(){
         if(loaded)
@@ -173,6 +174,11 @@ class Cube{
 
         mvpMat.get(fb)
         fb.position(0)
+
+        val uv = Matrix3f()
+        uv.identity()
+        uv.get(fbUv)
+        fbUv.position(0)
     }
 
     fun drawColorAt(pos: Vector3f, col: Vector4f, rotation: Quaternionf = Quaternionf()){
@@ -183,6 +189,7 @@ class Cube{
         glUseProgram(c.programId)
         glUniform4f(c.uColLoc, col.x, col.y, col.z, col.w)
         glUniformMatrix4fv(c.uMvpLoc, false, fb)
+
 
         glEnableVertexAttribArray(c.aPosLoc)
         glBindBuffer(GL_ARRAY_BUFFER, vbo)
@@ -203,6 +210,7 @@ class Cube{
         glUniform1i(t.uTxtLoc, 0)
 
         glUniformMatrix4fv(t.uMvpLoc, false, fb)
+        glUniformMatrix3fv(t.uUvLoc, false, fbUv)
 
         glEnableVertexAttribArray(t.aPosLoc)
         glBindBuffer(GL_ARRAY_BUFFER, vbo)

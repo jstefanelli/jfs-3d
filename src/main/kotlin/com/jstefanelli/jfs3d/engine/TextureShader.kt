@@ -19,14 +19,14 @@ class TextureShader{
             uniform mat4 uMvp;
             uniform mat3 uUv;
 
-            attirbute vec3 aPos;
-            attirbute vec2 aTxt;
+            attribute vec3 aPos;
+            attribute vec2 aTxt;
 
             varying vec2 vTxt;
 
             void main(){
-                gl_Position = uMvp * vec4(pos, 1.0);
-                vTxt = (uUv * vec3(vTxt, 1.0)).xy;
+                gl_Position = uMvp * vec4(aPos, 1.0);
+                vTxt = (uUv * vec3(aTxt, 1.0)).xy;
             }
             """
 

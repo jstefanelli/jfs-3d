@@ -45,6 +45,13 @@ import java.io.FileInputStream
 			return
 		}
 
+		val t = TextureShader()
+		if(!t.load()){
+			window!!.close()
+			return
+        }
+		World.texture = t
+
 		World.floor = StaticPlane()
 		if(World.floor == null) {
 			window!!.close()

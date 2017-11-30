@@ -1,13 +1,14 @@
 package com.jstefanelli.jfs3d.engine
 
 import org.lwjgl.opengl.GL11.*
+import org.lwjgl.opengl.GL14.*
 import org.lwjgl.stb.STBImage.*
 import org.lwjgl.system.MemoryStack
 import java.nio.IntBuffer
 import java.nio.ByteBuffer
 
 class Texture(private val filePath: String){
-    private var textureId: Int = -1
+    var textureId: Int = -1
 
     fun load(): Boolean{
         MemoryStack.stackPush().use{
@@ -21,11 +22,13 @@ class Texture(private val filePath: String){
 
             textureId = glGenTextures()
             glBindTexture(GL_TEXTURE_2D, textureId)
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+            glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image)
+
 
             return true
         }
