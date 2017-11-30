@@ -1,15 +1,22 @@
 package com.jstefanelli.jfs3d.engine
 
 import org.joml.*
+import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL11.*
+import org.lwjgl.opengl.GL13.*
 import org.lwjgl.opengl.GL15.*
+import java.nio.FloatBuffer
 
 class Cube{
     private var loaded: Boolean = false
 
     private var vbo: Int = 0
     private var tbo: Int = 0
+    private var view: Matrix4f = Matrix4f()
+    private var projection: Matrix4f = Matrix4f()
+
+    private val fb = BufferUtils.createFloatBuffer(16)
 
     fun load(){
         if(loaded)
@@ -58,12 +65,12 @@ class Cube{
                 //Right front top
                 .5f, .5f, .5f,
                 .5f, .5f, -.5f,
-                .5f, -.5f, -.5f
+                .5f, -.5f, -.5f,
 
                 //Top back left
                 -.5f, .5f, .5f,
                 -.5f, .5f, -.5f,
-                .5f, .5f, -5f,
+                .5f, .5f, .5f,
 
                 //Top front right
                 -.5f, .5f, -.5f,
@@ -91,19 +98,123 @@ class Cube{
                 //Back top right
                 0f, 1f,
                 1f, 1f,
+                1f, 0f,
+
+                //Front bottom right
+                1f, 0f,
+                0f, 0f,
+                0f, 1f,
+
+                //Front top left
+                1f, 0f,
+                0f, 1f,
+                1f, 1f,
+
+                //Left front bottom
+                0f, 0f,
+                0f, 1f,
+                1f, 0f,
+
+                //Left back top
+                0f, 1f,
+                1f, 1f,
+                1f, 0f,
+
+                //Right back bottom
+                0f, 0f,
+                0f, 1f,
+                1f, 0f,
+
+                //Right front top
+                0f, 1f,
+                1f, 1f,
+                1f, 0f,
+
+                //Top back left
+                0f, 0f,
+                0f, 1f,
+                1f, 0f,
+
+                //Top front right
+                0f, 1f,
+                1f, 1f,
+                1f, 0f,
+
+                //Bottom back right
+                1f, 1f,
+                0f, 1f,
+                0f, 0f,
+
+                //Bottom front left
+                1f, 1f,
+                0f, 0f,
                 1f, 0f
 
-                //TODO: Complete texture buffer
-        ), GL_STATIC_DRAW)
+                ), GL_STATIC_DRAW)
 
         loaded = true
+
+
+        view = Matrix4f()
+        view.lookAt(Vector3f(0f, 0f, 0f), Vector3f(0f, 0f, -1f), Vector3f(0f, 1f, 0f))
+        projection = Matrix4f()
+        projection.perspective(Mathf.toRadians(World.fov), World.currentWindow!!.width.toFloat() / World.currentWindow!!.height.toFloat(), 0.01f, 100f)
+
     }
 
-    fun drawColorAt(pos: Vector3f, col: Vector4f){
+    private fun makeModelMatrix(pos: Vector3f, rotation: Quaternionf){
 
+        val model = Matrix4f()
+        model.translate(pos)
+        model.rotate(rotation)
+        val mvpMat = Matrix4f()
+        view.mul(model, mvpMat)
+        projection.mul(model, mvpMat)
+
+        mvpMat.get(fb)
+        fb.position(0)
     }
 
-    fun drawTextureAt(pos: Vector3f, txt: Int){
-        
+    fun drawColorAt(pos: Vector3f, col: Vector4f, rotation: Quaternionf = Quaternionf()){
+        val c = World.color ?: return
+
+        makeModelMatrix(pos, rotation)
+
+        glUseProgram(c.programId)
+        glUniform4f(c.uColLoc, col.x, col.y, col.z, col.w)
+        glUniformMatrix4fv(c.uMvpLoc, false, fb)
+
+        glEnableVertexAttribArray(c.aPosLoc)
+        glBindBuffer(GL_ARRAY_BUFFER, vbo)
+        glVertexAttribPointer(c.aPosLoc, 3, GL_FLOAT, false, 0, 0)
+
+        glDrawArrays(GL_TRIANGLES, 0, 36)
+
+        glDisableVertexAttribArray(c.aPosLoc)
+    }
+
+    fun drawTextureAt(pos: Vector3f, txt: Int, rotation: Quaternionf = Quaternionf()){
+        val t = World.texture ?: return
+
+        makeModelMatrix(pos, rotation)
+        glUseProgram(t.programId)
+        glActiveTexture(GL_TEXTURE0)
+        glBindTexture(GL_TEXTURE_2D, txt)
+        glUniform1i(t.uTxtLoc, 0)
+
+        glUniformMatrix4fv(t.uMvpLoc, false, fb)
+
+        glEnableVertexAttribArray(t.aPosLoc)
+        glBindBuffer(GL_ARRAY_BUFFER, vbo)
+        glVertexAttribPointer(t.aPosLoc, 3, GL_FLOAT, false, 0, 0)
+
+        glEnableVertexAttribArray(t.aTxtLoc)
+        glBindBuffer(GL_ARRAY_BUFFER, tbo)
+        glVertexAttribPointer(t.aTxtLoc, 2, GL_FLOAT, false, 0, 0)
+
+        glDrawArrays(GL_TRIANGLES, 0, 36)
+
+        glDisableVertexAttribArray(t.aTxtLoc)
+        glDisableVertexAttribArray(t.aPosLoc)
     }
 }

@@ -137,8 +137,8 @@ class EngineWindow(title: String?){
 
 	fun make(){
 		initGLFW()
-
-		if(requestedExplicitGlContext){
+        glfwDefaultWindowHints();
+        if(requestedExplicitGlContext){
 			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, requestedGlContextMajor)
 			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, requestedGlContextMinor)
 

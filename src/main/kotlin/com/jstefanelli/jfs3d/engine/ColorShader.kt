@@ -41,30 +41,7 @@ class ColorShader{
 
 			"""
 
-		val vShader = glCreateShader(GL_VERTEX_SHADER)
-		glShaderSource(vShader, vSource)
-		glCompileShader(vShader)
-		if(glGetShaderi(vShader, GL_COMPILE_STATUS) == GL_FALSE){
-			System.err.println("Vertex shader error: " + glGetShaderInfoLog(vShader))
-			return false
-		}
-
-		val fShader = glCreateShader(GL_FRAGMENT_SHADER)
-		glShaderSource(fShader, fSource)
-		glCompileShader(fShader)
-		if(glGetShaderi(fShader, GL_COMPILE_STATUS) == GL_FALSE){
-			System.err.println("Fragment shader error: " + glGetShaderInfoLog(fShader))
-			return false
-		}
-
-		programId = glCreateProgram()
-		glAttachShader(programId, vShader)
-		glAttachShader(programId, fShader)
-		glLinkProgram(programId)
-		if(glGetProgrami(programId, GL_LINK_STATUS) == GL_FALSE){
-			System.err.println("Program link failed: " + glGetProgramInfoLog(programId))
-			return false
-		}
+		programId = compileShader(vSource, fSource) ?: return false
 
 		aPosLoc = glGetAttribLocation(programId, "aPos")
 		uMvpLoc = glGetUniformLocation(programId, "uMvp")

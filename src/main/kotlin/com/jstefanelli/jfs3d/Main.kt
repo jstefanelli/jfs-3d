@@ -1,7 +1,9 @@
 package com.jstefanelli.jfs3d
 
 import com.jstefanelli.jfs3d.engine.*
+import org.joml.Quaternionf
 import org.joml.Vector3f
+import org.joml.Vector4f
 import org.lwjgl.opengl.GL11.*
 
 class Main(){
@@ -9,6 +11,9 @@ class Main(){
 	private var window: EngineWindow? = null
 
 	private var loaded = false
+
+	private var lastTime: Long = 0
+	private var frames: Int = 0
 
 	private fun Load(){
 		if(window == null)
@@ -29,12 +34,18 @@ class Main(){
 			return
 		}
 
-		World.floor = StaticPlane(Vector3f(0.5f, 0.5f, 0.6f))
+		World.floor = StaticPlane()
 		if(World.floor == null) {
 			window!!.close()
 			return
 		}
 		World.floor!!.load()
+
+
+
+		World.cube = Cube()
+		val cube: Cube = World.cube ?: return
+		cube.load()
 
 		loaded = true
 	}
@@ -43,7 +54,24 @@ class Main(){
 		if(!loaded)
 			Load()
 
-		World.floor?.draw()
+		World.floor?.drawAt(Vector3f(0f, -0.5f, 0f), Vector4f(0.4f, 0.4f, 0.5f, 1.0f))
+        World.floor?.drawAt(Vector3f(0f, 0.5f, 0f), Vector4f(0.4f, 0.4f, 0.5f, 1.0f))
+		World.cube?.drawColorAt(Vector3f(-1f, 0f, 0f), Vector4f(0f, 0f, 1f, 1f))
+        World.cube?.drawColorAt(Vector3f(-1f, 0f, -1f), Vector4f(0f, 0f, 1f, 1f))
+        World.cube?.drawColorAt(Vector3f(1f, 0f, 0f), Vector4f(0f, 0f, 1f, 1f))
+        World.cube?.drawColorAt(Vector3f(1f, 0f, -1f), Vector4f(0f, 0f, 1f, 1f))
+
+        if(lastTime == 0L)
+            lastTime = System.currentTimeMillis()
+
+        val time = System.currentTimeMillis()
+        if(time - lastTime < 1000L){
+            frames++
+        }else{
+            System.out.println("FPS: " + frames)
+            frames = 0
+            lastTime = time
+        }
 	}
 
     init{
