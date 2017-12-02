@@ -14,11 +14,14 @@ class Main(){
 
 	private var loaded = false
 
-	private var rotateSensitivity = 3f
+	private var movementSpeed = 1.8f
+	private var rotateSensitivity = 3.5f
 
 	private var lastTime: Long = 0
 	private var frames: Int = 0
 	private var map: Map? = null
+	private var explosion: JSpriteType? = null
+	private var explosionInst: JSpriteType.JSpriteInstance? = null
 
 	private fun Load(){
 		if(window == null)
@@ -76,6 +79,15 @@ class Main(){
 		val cube: Cube = World.cube ?: return
 		cube.load()
 
+		JSpriteType.JSpriteInstance.initialize()
+
+		explosion = JSpriteType("textures/frames/explosion.jfr")
+		explosion?.load()
+		explosionInst = explosion?.makeInstance()
+
+		if(explosionInst == null)
+			return
+
 		World.playerPosition = Vector3f(0f, 0f, -1f)
 
 		loaded = true
@@ -93,13 +105,15 @@ class Main(){
 			World.playerRotation += 0.01f * rotateSensitivity
         }
 		if(glfwGetKey(window?.window ?: return, GLFW_KEY_W) == GLFW_PRESS){
-			World.movePlayer(0f, 0f, -0.02f, map ?: return)
+			World.movePlayer(0f, 0f, -0.02f * movementSpeed, map ?: return)
         }
 		if(glfwGetKey(window?.window ?: return, GLFW_KEY_S) == GLFW_PRESS){
-			World.movePlayer(0f, 0f, +0.02f, map ?: return)
+			World.movePlayer(0f, 0f, +0.02f * movementSpeed, map ?: return)
         }
 
 		map?.drawMap()
+		explosionInst?.drawAt(Vector3f(0f, 0f, -1f))
+
 
         if(lastTime == 0L)
             lastTime = System.currentTimeMillis()
@@ -127,6 +141,11 @@ class Main(){
 					when(key){
 						GLFW_KEY_ESCAPE -> {
 							window?.close()
+						}
+						GLFW_KEY_ENTER -> {
+							if(mods.or(GLFW_MOD_ALT) >= 0){
+								window?.fullscreen = !(window?.fullscreen ?: return)
+							}
 						}
 					}
                 }

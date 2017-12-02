@@ -20,11 +20,6 @@ class World(){
 		var projectionMatrix: Matrix4f = Matrix4f()
 		var lookAtMatrix: Matrix4f = Matrix4f()
 		var playerPosition: Vector3f = Vector3f()
-			get
-			set(value){
-				field = value
-				System.out.println("Update")
-			}
 		var playerRotation: Float = 0f
 
 		fun initialize(){
@@ -37,11 +32,10 @@ class World(){
 		}
 
 		fun movePlayer(movement: Vector3f, m: Map){
-			System.out.println("Mov0: " + movement)
 			movement.rotateAxis(playerRotation, 0f, -1f, 0f)
-
-			System.out.println("Mov1: " + movement)
-			playerPosition.add(movement)
+			val tmp = Vector3f(playerPosition)
+			tmp.add(movement)
+			if(m.validateMovement(tmp)) playerPosition = tmp;
 		}
 
 		fun movePlayer(x: Float, y: Float, z: Float, m: Map){

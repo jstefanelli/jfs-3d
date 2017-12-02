@@ -9,13 +9,16 @@ import org.lwjgl.opengl.GL30
 import java.nio.FloatBuffer
 
 
-fun makeMvp(position: Vector3f, orientation: Quaternionf, buffer: FloatBuffer, index: Int){
+val floatValuePattern = "([0-9.\\-f]+)"
+
+fun makeMvp(position: Vector3f, orientation: Quaternionf, buffer: FloatBuffer, index: Int, scale: Vector3f = Vector3f(1f, 1f, 1f)){
     val model = Matrix4f()
     val invertedPos = Vector3f(World.playerPosition)
     model.rotate(World.playerRotation, Vector3f(0f, 1f, 0f))
     model.translate(invertedPos.mul(-1f))
     model.translate(position)
-    model.rotate(orientation)
+	model.scale(scale)
+	model.rotate(orientation)
 
     val mvpMat = Matrix4f()
     World.lookAtMatrix.mul(model, mvpMat)

@@ -7,7 +7,6 @@ import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL
 import org.lwjgl.system.MemoryUtil
 
-
 interface DrawCallback{
 	fun draw()
 }
@@ -67,6 +66,7 @@ class EngineWindow(title: String?){
 		}
 		set(value){
 			field = value
+			fullScreenResolutionX = value
 			if(window == 0L)
 				return
 			val height = intArrayOf(-1)
@@ -85,6 +85,7 @@ class EngineWindow(title: String?){
 		}
 		set(value){
 			field = value
+			fullScreenResolutionY = value
 			if(window == 0L)
 				return
 			val width = intArrayOf(-1)
@@ -108,7 +109,13 @@ class EngineWindow(title: String?){
 				return
 			if(value) {
 				val l = glfwGetPrimaryMonitor()
-				glfwSetWindowMonitor(window, l, 0, 0, fullScreenResolutionX, fullScreenResolutionY, 0)
+				glfwSetWindowMonitor(window, l, 0, 0, fullScreenResolutionX, fullScreenResolutionY, GLFW_DONT_CARE)
+				if(doVsync)
+					glfwSwapInterval(1)
+			}else{
+				glfwSetWindowMonitor(window, 0L, 100, 100, width, height, GLFW_DONT_CARE)
+				if(doVsync)
+					glfwSwapInterval(1)
 			}
 		}
 
@@ -173,8 +180,6 @@ class EngineWindow(title: String?){
     private var oldWindow: Long = 0L
 
 	fun run(){
-
-
 		glfwMakeContextCurrent(window)
 
 		GL.createCapabilities()
