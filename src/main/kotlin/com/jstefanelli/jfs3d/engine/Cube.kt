@@ -164,16 +164,8 @@ class Cube{
     }
 
     private fun makeModelMatrix(pos: Vector3f, rotation: Quaternionf){
-
-        val model = Matrix4f()
-        model.translate(pos)
-        model.rotate(rotation)
-        val mvpMat = Matrix4f()
-        view.mul(model, mvpMat)
-        projection.mul(model, mvpMat)
-
-        mvpMat.get(fb)
         fb.position(0)
+        makeMvp(pos, rotation, fb, 0)
 
         val uv = Matrix3f()
         uv.identity()

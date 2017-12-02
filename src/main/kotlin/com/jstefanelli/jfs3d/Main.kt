@@ -1,15 +1,20 @@
-	package com.jstefanelli.jfs3d
+package com.jstefanelli.jfs3d
 
 import com.jstefanelli.jfs3d.engine.*
+import org.joml.Vector3f
+import org.lwjgl.glfw.GLFW.*
+import org.lwjgl.glfw.GLFWKeyCallback
 import org.lwjgl.opengl.GL11.*
 import java.io.File
 import java.io.FileInputStream
 
-    class Main(){
+class Main(){
 
 	private var window: EngineWindow? = null
 
 	private var loaded = false
+
+	private var rotateSensitivity = 3f
 
 	private var lastTime: Long = 0
 	private var frames: Int = 0
@@ -18,6 +23,11 @@ import java.io.FileInputStream
 	private fun Load(){
 		if(window == null)
 			return
+
+		if(loaded)
+			return
+
+        World.currentWindow = window
 
 		System.out.println("Write map: ")
 
@@ -29,6 +39,10 @@ import java.io.FileInputStream
             Map(System.`in`, true)
         }
 
+		System.out.println("Load start")
+
+		World.initialize()
+
 		map?.parse()
 		glEnable(GL_DEPTH_TEST)
 		glDepthFunc(GL_LEQUAL)
@@ -38,7 +52,6 @@ import java.io.FileInputStream
 
 		glViewport(0, 0, window?.width ?: 0, window?.height ?: 0)
 
-		World.currentWindow = window
 		World.color = ColorShader()
 		if(!World.color!!.compile()){
 			window!!.close()
@@ -63,12 +76,28 @@ import java.io.FileInputStream
 		val cube: Cube = World.cube ?: return
 		cube.load()
 
+		World.playerPosition = Vector3f(0f, 0f, -1f)
+
 		loaded = true
+		System.out.println("Load over")
 	}
 
 	fun drawGL(){
 		if(!loaded)
 			Load()
+		if((window?.window ?: return) == 0L) return
+		if(glfwGetKey(window?.window ?: return, GLFW_KEY_A) == GLFW_PRESS){
+			World.playerRotation -= 0.01f * rotateSensitivity
+        }
+		if(glfwGetKey(window?.window ?: return, GLFW_KEY_D) == GLFW_PRESS){
+			World.playerRotation += 0.01f * rotateSensitivity
+        }
+		if(glfwGetKey(window?.window ?: return, GLFW_KEY_W) == GLFW_PRESS){
+			World.movePlayer(0f, 0f, -0.02f, map ?: return)
+        }
+		if(glfwGetKey(window?.window ?: return, GLFW_KEY_S) == GLFW_PRESS){
+			World.movePlayer(0f, 0f, +0.02f, map ?: return)
+        }
 
 		map?.drawMap()
 
@@ -87,9 +116,23 @@ import java.io.FileInputStream
 
     init{
 		window = EngineWindow("JFS-3D")
-	    window?.width = 640
-	    window?.height = 480
+		window?.doVsync = true
+	    window?.width = 1280
+	    window?.height = 720
 	    window?.make()
+
+		window?.addKeyCb(object: GLFWKeyCallback() {
+            override fun invoke(windowLong: Long, key: Int, scancode: Int, action: Int, mods: Int) {
+				if(action == GLFW_PRESS){
+					when(key){
+						GLFW_KEY_ESCAPE -> {
+							window?.close()
+						}
+					}
+                }
+            }
+
+        })
 
 	    window?.drawCb = object: DrawCallback {
 		    override fun draw() {

@@ -16,8 +16,9 @@ class EngineWindow(title: String?){
 	var title: String = "JEngine JV"
 		private set
 
-	private var window: Long = 0
-
+	var window: Long = 0
+			get
+			private set
 
 	companion object glfwState{
 
@@ -155,16 +156,21 @@ class EngineWindow(title: String?){
 
 
 		glfwSetKeyCallback(window, { window: Long, key: Int, scancode: Int, action: Int, mods: Int ->
-			var arr: Array<GLFWKeyCallbackI>? = null
-			synchronized(keyCbs, {
-				arr = Array(keyCbs.count(), { index: Int -> keyCbs[index]})
-			})
-			for(cb in arr ?: emptyArray<GLFWKeyCallbackI>()){
-				cb.invoke(window, key, scancode, action, mods)
-			}
+            if(window != 0L) {
+                var arr: Array<GLFWKeyCallbackI>? = null
+                synchronized(keyCbs, {
+                    arr = Array(keyCbs.count(), { index: Int -> keyCbs[index] })
+                })
+                for (cb in arr ?: emptyArray<GLFWKeyCallbackI>()) {
 
+                    cb.invoke(window, key, scancode, action, mods)
+
+                }
+            }
 		})
 	}
+
+    private var oldWindow: Long = 0L
 
 	fun run(){
 
@@ -178,30 +184,38 @@ class EngineWindow(title: String?){
 
 		glfwShowWindow(window)
 
-		if(window != 0L){
-			while(!glfwWindowShouldClose(window)){
-				glfwPollEvents()
+		if(window != 0L) {
+            while (!glfwWindowShouldClose(window)) {
+                if (window == 0L) {
+                    glfwSetKeyCallback(oldWindow, null)
+                    glfwDestroyWindow(oldWindow)
+                }
 
-				glClear(GL_COLOR_BUFFER_BIT.or(GL_DEPTH_BUFFER_BIT))
+                glfwPollEvents()
 
-				drawCb?.draw()
-				if(window == 0L)
-					break
-				glfwSwapBuffers(window)
-			}
-		}
+                glClear(GL_COLOR_BUFFER_BIT.or(GL_DEPTH_BUFFER_BIT))
+
+                drawCb?.draw()
+                if (window == 0L)
+                    break
+                glfwSwapBuffers(window)
+            }
+        }
 	}
 
-	fun close(){
+
+
+    fun close(){
 		if(window != 0L) {
-			glfwDestroyWindow(window)
+			oldWindow = window
 			window = 0L
 		}
 	}
 
 	init{
-		if(title != null)
-			this.title = title
+		if(title != null) {
+            this.title = title
+        }
 	}
 
 	constructor(title: String?, glVersionMajor: Int, glVersionMinor: Int, useCompatibilityContext: Boolean) : this(title) {

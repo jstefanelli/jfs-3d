@@ -45,7 +45,7 @@ class StaticPlane(){
 
         val m = Matrix4f()
 
-        m.scale(10f, 1f, 10f)
+        m.scale(200f, 1f, 200f)
         m.translate(position)
 
         val mvpMat = Matrix4f()

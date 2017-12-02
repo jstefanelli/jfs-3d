@@ -14,6 +14,7 @@ val floatValuePattern = "([0-9.\\-f]+)"
 
 class Map(val mapFile: InputStream, val interactive: Boolean = false) {
 
+
     private val list: ArrayList<Pair<Vector3f, Vector4f>> = ArrayList()
     private val tList: ArrayList<Pair<Vector3f, String>> = ArrayList()
     private val ltList: ArrayList<Pair<Vector3f, Texture>> = ArrayList()
