@@ -3,6 +3,7 @@ package com.jstefanelli.jfs3d
 import com.jstefanelli.jfs3d.engine.Texture
 import com.jstefanelli.jfs3d.engine.World
 import com.jstefanelli.jfs3d.engine.floatValuePattern
+import org.joml.Quaternionf
 import org.joml.Vector3f
 import org.joml.Vector4f
 import java.io.InputStream
@@ -138,26 +139,227 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false) {
 		    val tx = ceilTexture ?: return
 		    floor.drawAt(Vector3f(0f, 0.5f, 0f), tx.textureId)
 	    }
-        for(p in list){
-            cube.drawColorAt(p.first, p.second)
-        }
-        for(p in ltList){
-            cube.drawTextureAt(p.first, p.second.textureId)
-        }
+	    synchronized(list) {
+		    for (p in list) {
+			    cube.drawColorAt(p.first, p.second)
+		    }
+	    }
+	    synchronized(ltList) {
+		    for (p in ltList) {
+			    cube.drawTextureAt(p.first, p.second.textureId)
+		    }
+	    }
     }
 
     fun validateMovement(position: Vector3f): Boolean{
-        for(c in list){
-            if(position.x >= c.first.x - 0.5f - safetyDistance && position.x <= c.first.x + 0.5f + safetyDistance
-                    && position.z >= c.first.z - 0.5f - safetyDistance && position.z <= c.first.z + 0.5f + safetyDistance)
-                return false
-        }
-	    for(c in ltList){
-		    if(position.x >= c.first.x - 0.5f - safetyDistance && position.x <= c.first.x + 0.5f + safetyDistance
-				    && position.z >= c.first.z - safetyDistance - 0.5f && position.z <= c.first.z + 0.5f + safetyDistance)
-			    return false
+	    synchronized(list) {
+		    for (c in list) {
+			    if (position.x >= c.first.x - 0.5f - safetyDistance && position.x <= c.first.x + 0.5f + safetyDistance
+					    && position.z >= c.first.z - 0.5f - safetyDistance && position.z <= c.first.z + 0.5f + safetyDistance)
+				    return false
+		    }
 	    }
-
+	    synchronized(ltList) {
+		    for (c in ltList) {
+			    if (position.x >= c.first.x - 0.5f - safetyDistance && position.x <= c.first.x + 0.5f + safetyDistance
+					    && position.z >= c.first.z - safetyDistance - 0.5f && position.z <= c.first.z + 0.5f + safetyDistance)
+				    return false
+		    }
+	    }
         return true
     }
+
+	private class rect(var q: Float, var m: Float){
+		constructor(first: Vector3f, second: Vector3f) : this(0f, 0f) {
+			System.out.println("First: $first Second: $second")
+			if(first.x == second.x){
+				this.m = Float.POSITIVE_INFINITY
+				this.q = first.x
+				return
+			}
+
+			if(first.z == second.z){
+				this.m = 0f
+				this.q = first.z
+				return
+			}
+
+			val yDen = second.z - first.z
+			val xDen = second.x - first.x
+			val q = yDen / xDen
+			val m = ((-first.x * yDen) / xDen) + first.z
+
+			this.q = q
+			this.m = m
+		}
+
+		fun getX(y: Float): Float{
+			if(m != 0f)
+				if(m != Float.POSITIVE_INFINITY)
+					return (y - q) / m
+				else
+					return q
+			else
+				if(y != q){
+					return Float.NEGATIVE_INFINITY
+				}else{
+					return Float.POSITIVE_INFINITY
+				}
+
+		}
+
+		fun getY(x: Float) : Float{
+			if(m == Float.POSITIVE_INFINITY){
+				if(x == q){
+					return Float.POSITIVE_INFINITY
+				}else{
+					return Float.NEGATIVE_INFINITY
+				}
+			}
+
+			return (x * m ) + q
+		}
+
+		override fun toString(): String {
+			return "y = " +  m + "x +  " +q
+		}
+	}
+
+	fun myDistance(pos: Vector3f, rot: Quaternionf, pos2: Vector3f) : Float{
+		val dist = pos2.distance(pos)
+		val forward = Vector3f(0f, 0f, -dist)
+		val pos2x = Vector3f(pos2)
+		pos2x.sub(pos)
+		forward.rotate(rot)
+
+
+		System.out.println("Test  p2x: $pos2x forw: $forward")
+
+		if(pos2x.x * forward.x >= 0f && pos2x.z * forward.z >= 0f)
+			return dist
+		else
+			return -dist
+	}
+
+	fun rayCast(position: Vector3f, orientation: Quaternionf) : Pair<Vector3f, Float>{
+
+		var lastDist = Float.MAX_VALUE
+		var lastPoint = Vector3f()
+
+		val forward = Vector3f(0f, 0f, -1f)
+
+		forward.rotate(orientation)
+		forward.add(position)
+		System.out.println("Forward: $forward")
+		val line = rect(position, forward)
+		System.out.println(line.toString())
+
+		synchronized(list) {
+			for (c in list) {
+				val x0 = line.getX(c.first.z - 0.5f)
+
+				val x1 = line.getX(c.first.z + 0.5f)
+				if (x0 >= c.first.x - 0.5f && x0 <= c.first.x + 0.5f) {
+					val pt = Vector3f(x0, 0f, c.first.z - 0.5f)
+					val dist = myDistance(position, orientation, pt)
+					System.out.println("Dist $dist (pt $pt)")
+					if(dist < 0)
+						continue
+					if (dist < lastDist) {
+						lastDist = dist
+						lastPoint = pt
+					}
+				}
+				if (x1 >= c.first.x - 0.5f && x1 <= c.first.x + 0.5f) {
+					val pt = Vector3f(x1, 0f, c.first.z + 0.5f)
+					val dist = myDistance(position, orientation, pt)
+					System.out.println("Dist $dist (pt $pt)")
+					if(dist < 0)
+						continue
+					if (dist < lastDist) {
+						lastDist = dist
+						lastPoint = pt
+					}
+				}
+				val y0 = line.getY(c.first.x - 0.5f)
+				val y1 = line.getY(c.first.x + 0.5f)
+				if (y0 >= c.first.z - 0.5f && y0 <= c.first.z + 0.5f) {
+					val pt = Vector3f(c.first.x - 0.5f, 0f, y0)
+					val dist = myDistance(position, orientation, pt)
+					System.out.println("Dist $dist (pt $pt)")
+					if(dist < 0)
+						continue
+					if (dist < lastDist) {
+						lastDist = dist
+						lastPoint = pt
+					}
+				}
+				if (y1 >= c.first.z - 0.5f && y1 <= c.first.z + 0.5f) {
+					val pt = Vector3f(c.first.x + 0.5f, 0f, y1)
+					val dist = myDistance(position, orientation, pt)
+					System.out.println("Dist $dist (pt $pt)")
+					if(dist < 0)
+						continue
+					if (dist < lastDist) {
+						lastDist = dist
+						lastPoint = pt
+					}
+				}
+			}
+		}
+		synchronized(ltList) {
+			for (c in ltList) {
+				val x0 = line.getX(c.first.z - 0.5f)
+				val x1 = line.getX(c.first.z + 0.5f)
+				if (x0 >= c.first.x - 0.5f && x0 <= c.first.x + 0.5f) {
+					val pt = Vector3f(x0, 0f, c.first.z - 0.5f)
+					val dist = myDistance(position, orientation, pt)
+					System.out.println("Dist $dist (pt $pt)")
+					if(dist < 0)
+						continue
+					if (dist < lastDist) {
+						lastDist = dist
+						lastPoint = pt
+					}
+				}
+				if (x1 >= c.first.x - 0.5f && x1 <= c.first.x + 0.5f) {
+					val pt = Vector3f(x1, 0f, c.first.z + 0.5f)
+					val dist = myDistance(position, orientation, pt)
+					System.out.println("Dist $dist (pt $pt)")
+					if(dist < 0)
+						continue
+					if (dist < lastDist) {
+						lastDist = dist
+						lastPoint = pt
+					}
+				}
+				val y0 = line.getY(c.first.x - 0.5f)
+				val y1 = line.getY(c.first.x + 0.5f)
+				if (y0 >= c.first.z - 0.5f && y0 <= c.first.z + 0.5f) {
+					val pt = Vector3f(c.first.x - 0.5f, 0f, y0)
+					val dist = myDistance(position, orientation, pt)
+					System.out.println("Dist $dist (pt $pt)")
+					if(dist < 0)
+						continue
+					if (dist < lastDist) {
+						lastDist = dist
+						lastPoint = pt
+					}
+				}
+				if (y1 >= c.first.z - 0.5f && y1 <= c.first.z + 0.5f) {
+					val pt = Vector3f(c.first.x + 0.5f, 0f, y1)
+					val dist = myDistance(position, orientation, pt)
+					System.out.println("Dist $dist (pt $pt)")
+					if(dist < 0)
+						continue
+					if (dist < lastDist) {
+						lastDist = dist
+						lastPoint = pt
+					}
+				}
+			}
+		}
+		System.out.println("Raycast: " + lastDist + " at " + lastPoint)
+		return Pair(lastPoint, lastDist)
+	}
 }

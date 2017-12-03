@@ -2,4 +2,4 @@ time    0.1
 frame   explosion_0.png
 frame   explosion_1.png
 frame   explosion_2.png
-repeat  true
+repeat  false
