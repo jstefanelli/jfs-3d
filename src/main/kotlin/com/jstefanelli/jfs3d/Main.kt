@@ -166,7 +166,6 @@ class Main(){
 							val p = map?.rayCast(World.playerPosition, rot) ?: return
 							if (p.second != Float.MAX_VALUE && p.second > 0f){
 								val p = Pair(p.first, explosion?.makeInstance() ?: return)
-								System.out.println("Adding")
 								synchronized(explosions){
 									explosions.add(p)
 								}
