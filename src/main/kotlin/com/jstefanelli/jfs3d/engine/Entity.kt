@@ -224,64 +224,44 @@ class Entity(val definitionFilePath: String) {
             val playerRelative = Vector3f(World.playerPosition)
             playerRelative.sub(position)
 
-            var angle = Mathf.toGrad(Mathf.angleFromOrigin(playerRelative))
+            val afo = Mathf.angleFromOrigin(playerRelative)
+            System.out.println("Afo: " + afo)
+            var angle = Mathf.toGrad(afo)
             val ax = AxisAngle4f(orientation)
-            angle += Mathf.toGrad(ax.y * ax.angle)
+            if(ax.angle != 0f) {
+	            angle += Mathf.toGrad(ax.y * ax.angle)
+            }
             if(angle < 0)
                 angle += 360f
             if(angle > 360.0f)
                 angle -= 360.0f
+
             System.out.println("Angle: " + angle)
 
-
             if((angle >= 0 && angle < 22.5f) || (angle <= 360.0f && angle >= 337.5f)){
-                //return if(Mathf.concord(playerRelative, objectForward))
                     return baseType.angle4Texture ?: throw RuntimeException("Entity: Required texture not found")
-                //else
-                    //baseType.angle0Texture ?: throw RuntimeException("Entity: Required texture not found")
             }
 
             if((angle >= 22.5f && angle < 67.5)){
-                //return if(Mathf.concord(playerRelative, objectForward))
                     return baseType.angle3Texture ?: throw RuntimeException("Entity: Required texture not found")
-                //else
-                    //baseType.angle1Texture ?: throw RuntimeException("Entity: Required texture not found")
             }
             if((angle >= 67.5f && angle < 112.5f)){
-                //return if(Mathf.concord(playerRelative, objectForward))
                     return baseType.angle2Texture ?: throw RuntimeException("Entity: Required texture not found")
-                //else
-                    //baseType.angle2Texture ?: throw RuntimeException("Entity: Required texture not found")
             }
             if(angle >= 112.5f && angle < 157.5f){
-                //return if(Mathf.concord(playerRelative, objectForward))
                     return baseType.angle1Texture ?: throw RuntimeException("Entity: Required texture not found")
-                //else
-                    //baseType.angle3Texture ?: throw RuntimeException("Entity: Required texture not found")
             }
             if(angle >= 157.5f && angle < 202.5f){
-                //return if(Mathf.concord(playerRelative, objectForward))
                     return baseType.angle0Texture ?: throw RuntimeException("Entity: Required texture not found")
-                //else
-                    //baseType.angle4Texture ?: throw RuntimeException("Entity: Required texture not found")
             }
             if(angle >= 202.5f && angle < 247.5f){
-                //return if(Mathf.concord(playerRelative, objectForward))
                     return baseType.angle7Texture ?: throw RuntimeException("Entity: Required texture not found")
-                //else
-                    //baseType.angle5Texture ?: throw RuntimeException("Entity: Required texture not found")
             }
             if(angle >= 247.5f && angle < 292.5f){
-                //return if(Mathf.concord(playerRelative, objectForward))
                     return baseType.angle6Texture ?: throw RuntimeException("Entity: Required texture not found")
-                //else
-                    //baseType.angle6Texture ?: throw RuntimeException("Entity: Required texture not found")
             }
             if(angle >= 292.5f && angle < 337.5f){
-                //return if(Mathf.concord(playerRelative, objectForward))
                     return baseType.angle5Texture ?: throw RuntimeException("Entity: Required texture not found")
-                //else
-                    //baseType.angle7Texture ?: throw RuntimeException("Entity: Required texture not found")
             }
 
             return baseType.angle0Texture ?: throw RuntimeException("Entity: Required Texture not loaded")

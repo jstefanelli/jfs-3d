@@ -123,7 +123,7 @@ class Main(){
 		val demoRot = Quaternionf()
 		demoRot.fromAxisAngleRad(0f, 1f, 0f, Mathf.toRadians(90.0f))
 
-		an += 22.5f / 60f
+		//an += 22.5f / 60f
 		if(an >= 360.0f)
 			an -= 360.0f
 		val rot = Quaternionf()
