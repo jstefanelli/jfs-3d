@@ -1,6 +1,7 @@
 package com.jstefanelli.jfs3d
 
 import com.jstefanelli.jfs3d.engine.*
+import org.joml.AxisAngle4f
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import org.lwjgl.glfw.GLFW.*
@@ -23,6 +24,11 @@ class Main(){
 	private var map: Map? = null
 	private var explosion: JSpriteType? = null
 	private var explosions: ArrayList<Pair<Vector3f, JSpriteType.JSpriteInstance>> = ArrayList()
+
+	private var enemyType: Entity? = null
+	private var demoEnemy: Entity.EntityInstance? = null
+
+	private var an = 0f
 
 	private fun Load(){
 		if(window == null)
@@ -85,6 +91,11 @@ class Main(){
 		explosion = JSpriteType("textures/frames/explosion.jfr")
 		explosion?.load()
 
+		enemyType = Entity("textures/entities/enemy/enemy.jen")
+		enemyType?.load()
+
+		demoEnemy = enemyType?.makeInstance()
+
 		World.playerPosition = Vector3f(0f, 0f, -1f)
 
 		loaded = true
@@ -109,6 +120,15 @@ class Main(){
         }
 
 		map?.drawMap()
+		val demoRot = Quaternionf()
+		demoRot.fromAxisAngleRad(0f, 1f, 0f, Mathf.toRadians(90.0f))
+
+		an += 22.5f / 60f
+		if(an >= 360.0f)
+			an -= 360.0f
+		val rot = Quaternionf()
+		rot.fromAxisAngleRad(0f, 1f, 0f, Mathf.toRadians(an))
+		demoEnemy?.drawAt(Vector3f(0f, 0f, 0f), rot)
 
 		glClear(GL_DEPTH_BUFFER_BIT)
 
@@ -135,7 +155,7 @@ class Main(){
         if(time - lastTime < 1000L){
             frames++
         }else{
-            //System.out.println("FPS: " + frames)
+            System.out.println("FPS: " + frames)
             frames = 0
             lastTime = time
         }

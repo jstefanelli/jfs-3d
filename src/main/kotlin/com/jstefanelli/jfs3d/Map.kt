@@ -3,6 +3,7 @@ package com.jstefanelli.jfs3d
 import com.jstefanelli.jfs3d.engine.Texture
 import com.jstefanelli.jfs3d.engine.World
 import com.jstefanelli.jfs3d.engine.floatValuePattern
+import com.jstefanelli.jfs3d.engine.geometry.rect
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -169,63 +170,7 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false) {
         return true
     }
 
-	private class rect(var q: Float, var m: Float){
 
-		constructor(first: Vector3f, second: Vector3f) : this(0f, 0f) {
-			if(first.x == second.x){
-				this.m = Float.POSITIVE_INFINITY
-				this.q = first.x
-				return
-			}
-
-			if(first.z == second.z){
-				this.m = 0f
-				this.q = first.z
-				return
-			}
-
-			val yDen = second.z - first.z
-			val xDen = second.x - first.x
-			val m = yDen / xDen
-			val q = ((-first.x / xDen) * yDen) + first.z
-
-			this.q = q
-			this.m = m
-		}
-
-		fun getX(y: Float): Float{
-			if(m != 0f)
-				if(m != Float.POSITIVE_INFINITY)
-					return (y - q) / m
-				else
-					return q
-			else
-				if(y != q){
-					return Float.NEGATIVE_INFINITY
-				}else{
-					return Float.POSITIVE_INFINITY
-				}
-
-		}
-
-		fun getY(x: Float) : Float{
-			if(m == Float.POSITIVE_INFINITY){
-				if(x == q){
-					return Float.POSITIVE_INFINITY
-				}else{
-					return Float.NEGATIVE_INFINITY
-				}
-			}
-
-			return (x * m ) + q
-		}
-
-		override fun toString(): String {
-			if(m == Float.POSITIVE_INFINITY)
-				return "x = $q"
-			return "y = " +  m + "x + " + q
-		}
-	}
 
 	fun myDistance(pos: Vector3f, rot: Quaternionf, pos2: Vector3f) : Float{
 		val dist = pos2.distance(pos)
