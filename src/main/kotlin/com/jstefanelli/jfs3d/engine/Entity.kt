@@ -46,7 +46,9 @@ class Entity(val definitionFilePath: String) {
     var tbo: Int = 0
     var uvFb: FloatBuffer = BufferUtils.createFloatBuffer(9)
 
-    private var loaded = false
+    var loaded = false
+        get
+        private set
 
     fun load(){
         if(loaded) return
@@ -225,7 +227,6 @@ class Entity(val definitionFilePath: String) {
             playerRelative.sub(position)
 
             val afo = Mathf.angleFromOrigin(playerRelative)
-            System.out.println("Afo: " + afo)
             var angle = Mathf.toGrad(afo)
             val ax = AxisAngle4f(orientation)
             if(ax.angle != 0f) {
@@ -235,8 +236,6 @@ class Entity(val definitionFilePath: String) {
                 angle += 360f
             if(angle > 360.0f)
                 angle -= 360.0f
-
-            System.out.println("Angle: " + angle)
 
             if((angle in 0f..22.5f) || (angle in 337.5f..360.0f)){
                     return baseType.angle4Texture ?: throw RuntimeException("Entity: Required texture not found")

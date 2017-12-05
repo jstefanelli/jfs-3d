@@ -9,7 +9,9 @@ import org.lwjgl.opengl.GL15.*
 import java.nio.FloatBuffer
 
 class Cube{
-    private var loaded: Boolean = false
+    var loaded: Boolean = false
+        get
+        private set
 
     private var vbo: Int = 0
     private var tbo: Int = 0

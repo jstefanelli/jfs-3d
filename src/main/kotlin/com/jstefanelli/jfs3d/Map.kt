@@ -1,5 +1,6 @@
 package com.jstefanelli.jfs3d
 
+import com.jstefanelli.jfs3d.engine.Entity
 import com.jstefanelli.jfs3d.engine.Texture
 import com.jstefanelli.jfs3d.engine.World
 import com.jstefanelli.jfs3d.engine.floatValuePattern
@@ -12,13 +13,12 @@ import java.util.*
 import java.util.regex.Pattern
 import javax.xml.bind.util.ValidationEventCollector
 import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 
 
 class Map(val mapFile: InputStream, val interactive: Boolean = false) {
 
-
-    private val list: ArrayList<Pair<Vector3f, Vector4f>> = ArrayList()
-    private val ltList: ArrayList<Pair<Vector3f, Texture>> = ArrayList()
+	private val entityList: ArrayList<MappableEntity> = ArrayList()
 
     private var floorColor = Vector4f(0.5f, 0.5f, 0.5f, 1f)
     private var ceilColor = Vector4f(0.3f, 0.3f, 0.3f, 1f)
@@ -26,6 +26,7 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false) {
 	private var floorTexture: Texture? = null
 	private var ceilTexture: Texture? = null
 
+	private val entityTypes: HashMap<Int, Entity> = HashMap()
 
 	var safetyDistance: Float = 0.03f
 
@@ -37,6 +38,8 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false) {
         private val cubeTexture = Pattern.compile("^ct (.+)")
 	    private val floorTextureRegex = Pattern.compile("^ft (.+)")
         private val overRegex = Pattern.compile("^over")
+		private val entityTypeRegex = Pattern.compile("^et\\s+(\\d+)\\s+(.+)")
+		private val entityRegex = Pattern.compile("^e\\s+(\\d+)\\s+$floatValuePattern\\s+$floatValuePattern\\s+$floatValuePattern")
     }
 
     fun parse(){
@@ -87,11 +90,9 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false) {
                 val z = res.group(3).toFloat()
                 val pos = Vector3f(x, y, z)
                 if(!mode) {
-                    val pair = Pair<Vector3f, Vector4f>(pos, lastColor)
-                    list.add(pair)
+                    entityList.add(MappedCube(pos, lastColor))
                 }else{
-                    val pair = Pair<Vector3f, Texture>(pos, lastTexture!!)
-                    ltList.add(pair)
+                    entityList.add(MappedCube(pos, lastTexture ?: return))
                 }
                 continue
             }
@@ -116,18 +117,42 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false) {
                 ceilColor = Vector4f(r, g, b, a)
                 continue
             }
+			if(entityTypeRegex.matcher(line).matches()){
+				val res = entityTypeRegex.matcher(line)
+				res.find()
+				val index = res.group(1).toInt()
+				if(entityTypes.containsKey(index)){
+					System.err.println("Found duplicate entity type keys. Skipping...")
+					continue
+                }
+				val path = res.group(2)
+				val et = Entity(path)
+				entityTypes.put(index, et)
+            }
+			if(entityRegex.matcher(line).matches()){
+				val res = entityRegex.matcher(line)
+				res.find()
+				val index = res.group(1).toInt()
+				if(!entityTypes.containsKey(index)){
+					System.err.println("Entity type key not found. Skipping.,,")
+					continue
+                }
+				val x = res.group(2).toFloat()
+				val y = res.group(3).toFloat()
+				val z = res.group(4).toFloat()
+				entityList.add(TrackedEntity(entityTypes.get(index) ?: return, Vector3f(x, y, z)))
+            }
         }
-        for(p in ltList){
-            p.second.load()
+        for(p in entityList){
+            p.load()
         }
 	    val l = floorTexture?.load()
-	    if(l == false) System.err.println("Failed to load floor texture")
+		if(l == false) System.err.println("Failed to load floor texture")
 
     }
 
     fun drawMap(){
         val floor = World.floor ?: return
-        val cube = World.cube ?: return
 	    if(floorTexture == null)
             floor.drawAt(Vector3f(0f, -0.5f, 0f), floorColor)
 	    else {
@@ -140,30 +165,19 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false) {
 		    val tx = ceilTexture ?: return
 		    floor.drawAt(Vector3f(0f, 0.5f, 0f), tx.textureId)
 	    }
-	    synchronized(list) {
-		    for (p in list) {
-			    cube.drawColorAt(p.first, p.second)
+	    synchronized(entityList) {
+		    for (p in entityList) {
+				p.draw()
 		    }
 	    }
-	    synchronized(ltList) {
-		    for (p in ltList) {
-			    cube.drawTextureAt(p.first, p.second.textureId)
-		    }
-	    }
+
     }
 
     fun validateMovement(position: Vector3f): Boolean{
-	    synchronized(list) {
-		    for (c in list) {
-			    if (position.x >= c.first.x - 0.5f - safetyDistance && position.x <= c.first.x + 0.5f + safetyDistance
-					    && position.z >= c.first.z - 0.5f - safetyDistance && position.z <= c.first.z + 0.5f + safetyDistance)
-				    return false
-		    }
-	    }
-	    synchronized(ltList) {
-		    for (c in ltList) {
-			    if (position.x >= c.first.x - 0.5f - safetyDistance && position.x <= c.first.x + 0.5f + safetyDistance
-					    && position.z >= c.first.z - safetyDistance - 0.5f && position.z <= c.first.z + 0.5f + safetyDistance)
+	    synchronized(entityList) {
+		    for (c in entityList) {
+			    if (c.active && position.x >= c.position.x - c.size.x / 2 - safetyDistance && position.x <= c.position.x + c.size.x / 2 + safetyDistance
+					    && position.z >= c.position.z - c.size.y / 2 - safetyDistance && position.z <= c.position.z + c.size.y / 2 + safetyDistance)
 				    return false
 		    }
 	    }
@@ -195,100 +209,60 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false) {
 		forward.rotate(orientation)
 		forward.add(position)
 		val line = rect(position, forward)
+		var lastHitEntity: MappableEntity? = null
+		synchronized(entityList) {
+			for (c in entityList) {
+				if(!c.active)
+					continue
+				val x0 = line.getX(c.position.z - c.size.y / 2)
+				val x1 = line.getX(c.position.z + c.size.y / 2)
 
-		synchronized(list) {
-			for (c in list) {
-				val x0 = line.getX(c.first.z - 0.5f)
-				val x1 = line.getX(c.first.z + 0.5f)
-
-				if (x0 >= c.first.x - 0.5f && x0 <= c.first.x + 0.5f) {
-					val pt = Vector3f(x0, 0f, c.first.z - 0.5f)
+				if (x0 >= c.position.x - c.size.x / 2 && x0 <= c.position.x + c.size.x / 2) {
+					val pt = Vector3f(x0, 0f, c.position.z - c.size.y / 2)
 					val dist = myDistance(position, orientation, pt)
 
 					if(dist >= 0 && dist < lastDist) {
+                        lastHitEntity = c
 						lastDist = dist
 						lastPoint = pt
 					}
 				}
-				if (x1 >= c.first.x - 0.5f && x1 <= c.first.x + 0.5f) {
-					val pt = Vector3f(x1, 0f, c.first.z + 0.5f)
+				if (x1 >= c.position.x - c.size.x / 2 && x1 <= c.position.x + c.size.x / 2) {
+					val pt = Vector3f(x1, 0f, c.position.z + c.size.y / 2)
 					val dist = myDistance(position, orientation, pt)
 
 					if(dist >= 0 && dist < lastDist) {
+                        lastHitEntity = c
 						lastDist = dist
 						lastPoint = pt
 					}
 				}
-				val y0 = line.getY(c.first.x - 0.5f)
-				val y1 = line.getY(c.first.x + 0.5f)
+				val y0 = line.getY(c.position.x - c.size.x / 2)
+				val y1 = line.getY(c.position.x + c.size.x / 2)
 
-				if (y0 >= c.first.z - 0.5f && y0 <= c.first.z + 0.5f) {
-					val pt = Vector3f(c.first.x - 0.5f, 0f, y0)
+				if (y0 >= c.position.z - c.size.y / 2 && y0 <= c.position.z + c.size.y / 2) {
+					val pt = Vector3f(c.position.x - c.size.x / 2, 0f, y0)
 					val dist = myDistance(position, orientation, pt)
 
 					if(dist >= 0 && dist < lastDist) {
+                        lastHitEntity = c
 						lastDist = dist
 						lastPoint = pt
 					}
 				}
-				if (y1 >= c.first.z - 0.5f && y1 <= c.first.z + 0.5f) {
-					val pt = Vector3f(c.first.x + 0.5f, 0f, y1)
+				if (y1 >= c.position.z - c.size.y / 2 && y1 <= c.position.z + c.size.y / 2) {
+					val pt = Vector3f(c.position.x + c.size.x / 2, 0f, y1)
 					val dist = myDistance(position, orientation, pt)
 
 					if(dist >= 0 && dist < lastDist) {
-						lastDist = dist
-						lastPoint = pt
-					}
-				}
-			}
-		}
-		synchronized(ltList) {
-			for (c in ltList) {
-				val x0 = line.getX(c.first.z - 0.5f)
-				val x1 = line.getX(c.first.z + 0.5f)
-
-				if (x0 >= c.first.x - 0.5f && x0 <= c.first.x + 0.5f) {
-					val pt = Vector3f(x0, 0f, c.first.z - 0.5f)
-					val dist = myDistance(position, orientation, pt)
-
-					if(dist >= 0 && dist < lastDist) {
-						lastDist = dist
-						lastPoint = pt
-					}
-				}
-				if (x1 >= c.first.x - 0.5f && x1 <= c.first.x + 0.5f) {
-					val pt = Vector3f(x1, 0f, c.first.z + 0.5f)
-					val dist = myDistance(position, orientation, pt)
-
-					if(dist >= 0 && dist < lastDist) {
-						lastDist = dist
-						lastPoint = pt
-					}
-				}
-				val y0 = line.getY(c.first.x - 0.5f)
-				val y1 = line.getY(c.first.x + 0.5f)
-
-				if (y0 >= c.first.z - 0.5f && y0 <= c.first.z + 0.5f) {
-					val pt = Vector3f(c.first.x - 0.5f, 0f, y0)
-					val dist = myDistance(position, orientation, pt)
-
-					if(dist >= 0 && dist < lastDist) {
-						lastDist = dist
-						lastPoint = pt
-					}
-				}
-				if (y1 >= c.first.z - 0.5f && y1 <= c.first.z + 0.5f) {
-					val pt = Vector3f(c.first.x + 0.5f, 0f, y1)
-					val dist = myDistance(position, orientation, pt)
-
-					if(dist >= 0 && dist < lastDist) {
+						lastHitEntity = c
 						lastDist = dist
 						lastPoint = pt
 					}
 				}
 			}
 		}
-
+		lastHitEntity?.onHit()
 		return Pair(lastPoint, lastDist)
 	}
 }

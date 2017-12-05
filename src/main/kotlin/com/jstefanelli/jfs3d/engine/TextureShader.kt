@@ -38,7 +38,11 @@ class TextureShader{
             varying vec2 vTxt;
 
             void main(){
-                gl_FragColor = texture2D(uTxt, vTxt);
+                vec4 col = texture2D(uTxt, vTxt);
+                if(col.a < 0.1f){
+                    discard;
+                }
+                gl_FragColor = col;
             }
 
             """

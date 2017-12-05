@@ -25,10 +25,8 @@ class Main(){
 	private var explosion: JSpriteType? = null
 	private var explosions: ArrayList<Pair<Vector3f, JSpriteType.JSpriteInstance>> = ArrayList()
 
-	private var enemyType: Entity? = null
-	private var demoEnemy: Entity.EntityInstance? = null
-
-	private var an = 0f
+	private var lastShot = 0L
+	private var shotRate = 250L
 
 	private fun Load(){
 		if(window == null)
@@ -91,10 +89,6 @@ class Main(){
 		explosion = JSpriteType("textures/frames/explosion.jfr")
 		explosion?.load()
 
-		enemyType = Entity("textures/entities/enemy/enemy.jen")
-		enemyType?.load()
-
-		demoEnemy = enemyType?.makeInstance()
 
 		World.playerPosition = Vector3f(0f, 0f, -1f)
 
@@ -119,16 +113,26 @@ class Main(){
 			World.movePlayer(0f, 0f, +0.02f * movementSpeed, map ?: return)
         }
 
+
+        val time = System.currentTimeMillis()
+
+		val space_status = glfwGetKey(window?.window ?: return, GLFW_KEY_SPACE)
+		if(space_status == GLFW_PRESS && (time - lastShot > shotRate)){
+            val rot = Quaternionf()
+            rot.rotateAxis(-World.playerRotation, Vector3f(0f, 1f, 0f))
+            val p = map?.rayCast(World.playerPosition, rot) ?: return
+            if (p.second != Float.MAX_VALUE && p.second > 0f){
+                val pa = Pair(p.first, explosion?.makeInstance() ?: return)
+                synchronized(explosions){
+                    explosions.add(pa)
+                }
+            }
+			lastShot = time
+        }
+
 		map?.drawMap()
 		val demoRot = Quaternionf()
 		demoRot.fromAxisAngleRad(0f, 1f, 0f, Mathf.toRadians(90.0f))
-
-		//an += 22.5f / 60f
-		if(an >= 360.0f)
-			an -= 360.0f
-		val rot = Quaternionf()
-		rot.fromAxisAngleRad(0f, 1f, 0f, Mathf.toRadians(an))
-		demoEnemy?.drawAt(Vector3f(0f, 0f, 0f), rot)
 
 		glClear(GL_DEPTH_BUFFER_BIT)
 
@@ -151,7 +155,6 @@ class Main(){
         if(lastTime == 0L)
             lastTime = System.currentTimeMillis()
 
-        val time = System.currentTimeMillis()
         if(time - lastTime < 1000L){
             frames++
         }else{
@@ -170,7 +173,7 @@ class Main(){
 
 		window?.addKeyCb(object: GLFWKeyCallback() {
             override fun invoke(windowLong: Long, key: Int, scancode: Int, action: Int, mods: Int) {
-				if(action == GLFW_PRESS){
+				if(action == GLFW_PRESS ){
 					when(key){
 						GLFW_KEY_ESCAPE -> {
 							window?.close()
@@ -178,17 +181,6 @@ class Main(){
 						GLFW_KEY_ENTER -> {
 							if(mods.or(GLFW_MOD_ALT) >= 0){
 								window?.fullscreen = !(window?.fullscreen ?: return)
-							}
-						}
-						GLFW_KEY_SPACE -> {
-							val rot = Quaternionf()
-							rot.rotateAxis(-World.playerRotation, Vector3f(0f, 1f, 0f))
-							val p = map?.rayCast(World.playerPosition, rot) ?: return
-							if (p.second != Float.MAX_VALUE && p.second > 0f){
-								val p = Pair(p.first, explosion?.makeInstance() ?: return)
-								synchronized(explosions){
-									explosions.add(p)
-								}
 							}
 						}
 					}
