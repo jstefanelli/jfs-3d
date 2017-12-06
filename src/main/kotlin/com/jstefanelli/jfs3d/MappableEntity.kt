@@ -7,6 +7,7 @@ interface MappableEntity {
     val position: Vector3f
     val size: Vector2f
     var active: Boolean
+    fun update(map: Map)
     fun draw()
     fun load()
     fun onHit()

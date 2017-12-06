@@ -21,6 +21,7 @@ class World(){
 		var lookAtMatrix: Matrix4f = Matrix4f()
 		var playerPosition: Vector3f = Vector3f()
 		var playerRotation: Float = 0f
+		var log = Log("log.txt")
 
 		fun initialize(){
 			val w = currentWindow ?: return
@@ -35,7 +36,7 @@ class World(){
 			movement.rotateAxis(playerRotation, 0f, -1f, 0f)
 			val tmp = Vector3f(playerPosition)
 			tmp.add(movement)
-			if(m.validateMovement(tmp)) playerPosition = tmp;
+			if(m.validateMovement(tmp, true)) playerPosition = tmp;
 		}
 
 		fun movePlayer(x: Float, y: Float, z: Float, m: Map){

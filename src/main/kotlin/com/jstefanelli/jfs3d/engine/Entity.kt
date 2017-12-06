@@ -230,38 +230,38 @@ class Entity(val definitionFilePath: String) {
             var angle = Mathf.toGrad(afo)
             val ax = AxisAngle4f(orientation)
             if(ax.angle != 0f) {
-	            angle += Mathf.toGrad(ax.y * ax.angle)
+	            angle -= Mathf.toGrad(ax.y * ax.angle)
             }
-            if(angle < 0)
+            while(angle < 0)
                 angle += 360f
-            if(angle > 360.0f)
+            while(angle > 360.0f)
                 angle -= 360.0f
 
             if((angle in 0f..22.5f) || (angle in 337.5f..360.0f)){
-                    return baseType.angle4Texture ?: throw RuntimeException("Entity: Required texture not found")
-            }
-            if((angle in 22.5f..67.5f)){
-                    return baseType.angle3Texture ?: throw RuntimeException("Entity: Required texture not found")
-            }
-            if((angle in 67.5f..112.5f)){
-                    return baseType.angle2Texture ?: throw RuntimeException("Entity: Required texture not found")
-            }
-            if(angle in 112.5f..157.5f){
-                    return baseType.angle1Texture ?: throw RuntimeException("Entity: Required texture not found")
-            }
-            if(angle in 157.5f..202.5f){
                     return baseType.angle0Texture ?: throw RuntimeException("Entity: Required texture not found")
             }
-            if(angle in 202.5f..247.5f){
+            if((angle in 22.5f..67.5f)){
                     return baseType.angle7Texture ?: throw RuntimeException("Entity: Required texture not found")
             }
-            if(angle in 247.5f..292.5f){
+            if((angle in 67.5f..112.5f)){
                     return baseType.angle6Texture ?: throw RuntimeException("Entity: Required texture not found")
             }
-            if(angle in 292.5f..337.5f){
+            if(angle in 112.5f..157.5f){
                     return baseType.angle5Texture ?: throw RuntimeException("Entity: Required texture not found")
             }
-
+            if(angle in 157.5f..202.5f){
+                    return baseType.angle4Texture ?: throw RuntimeException("Entity: Required texture not found")
+            }
+            if(angle in 202.5f..247.5f){
+                    return baseType.angle3Texture ?: throw RuntimeException("Entity: Required texture not found")
+            }
+            if(angle in 247.5f..292.5f){
+                    return baseType.angle2Texture ?: throw RuntimeException("Entity: Required texture not found")
+            }
+            if(angle in 292.5f..337.5f){
+                    return baseType.angle1Texture ?: throw RuntimeException("Entity: Required texture not found")
+            }
+            World.log.err("ENTITY_BASE", "Failed to detect angle: " + angle)
             return baseType.angle0Texture ?: throw RuntimeException("Entity: Required Texture not loaded")
         }
 

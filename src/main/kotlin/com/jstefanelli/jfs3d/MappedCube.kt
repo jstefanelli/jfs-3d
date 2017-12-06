@@ -53,7 +53,15 @@ class MappedCube private constructor(override var position: Vector3f) : Mappable
         }
     }
 
+    override fun toString(): String{
+        return "Cube at " + position
+    }
+
     override fun onHit(){
+
+    }
+
+    override fun update(map: Map){
 
     }
 }

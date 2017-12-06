@@ -214,6 +214,7 @@ class EngineWindow(title: String?){
 		if(window != 0L) {
 			oldWindow = window
 			window = 0L
+			World.log.close()
 		}
 	}
 
