@@ -22,8 +22,6 @@ class Main(){
 	private var lastTime: Long = 0
 	private var frames: Int = 0
 	private var map: Map? = null
-	private var explosion: JSpriteType? = null
-	private var explosions: ArrayList<Pair<Vector3f, JSpriteType.JSpriteInstance>> = ArrayList()
 
 	private var lastShot = 0L
 	private var shotRate = 250L
@@ -86,8 +84,6 @@ class Main(){
 
 		JSpriteType.JSpriteInstance.initialize()
 
-		explosion = JSpriteType("textures/frames/explosion.jfr")
-		explosion?.load()
 
 
 		World.playerPosition = Vector3f(0f, 0f, -1f)
@@ -120,37 +116,24 @@ class Main(){
 		if(space_status == GLFW_PRESS && (time - lastShot > shotRate)){
             val rot = Quaternionf()
             rot.rotateAxis(-World.playerRotation, Vector3f(0f, 1f, 0f))
-            val p = map?.rayCast(World.playerPosition, rot) ?: return
+            val p = map?.rayCast(World.playerPosition, rot, true) ?: return
             if (p.second != Float.MAX_VALUE && p.second > 0f){
-                val pa = Pair(p.first, explosion?.makeInstance() ?: return)
-                synchronized(explosions){
-                    explosions.add(pa)
+                val pa = Pair(p.first, map?.explosion?.makeInstance() ?: return)
+                synchronized(map?.explosions ?: return){
+                    val ex = map?.explosions ?: return
+					ex.add(pa)
                 }
             }
 			lastShot = time
         }
+
+		map?.updateMap()
 
 		map?.drawMap()
 		val demoRot = Quaternionf()
 		demoRot.fromAxisAngleRad(0f, 1f, 0f, Mathf.toRadians(90.0f))
 
 		glClear(GL_DEPTH_BUFFER_BIT)
-
-		synchronized(explosions){
-			for(i in explosions){
-				i.second.drawAt(i.first)
-			}
-			var i = 0
-			while(true){
-				if(i >= explosions.count())
-					break
-				val t = explosions[i]
-				if(!t.second.running)
-					explosions.removeAt(i)
-				else
-					i++
-			}
-		}
 
         if(lastTime == 0L)
             lastTime = System.currentTimeMillis()

@@ -1,29 +1,7 @@
 ct textures/wall.png
-c -1 0 0
-c -1 0 -1
-//c -1 0 -2
-c -1 0 -3
-c -2 0 -3
-c 1 0 0
-c 1 0 -1
-c 1 0 -2
-c 1 0 -3
-c -3 0 -5
-c -2 0 -5
-c -1 0 -5
-c 0 0 -5
-c 1 0 -5
-c 2 0 -5
-c 3 0 -5
+c 0 0 -4
+c 4 0 0
 ft textures/floor.png
 et 0 textures/entities/enemy/enemy.jen
-e 0 0 0 1
-e 0 1 0 1
-e 0 2 0 1
-e 0 3 0 1
-e 0 4 0 1
-e 0 -1 0 1
-e 0 -2 0 1
-e 0 -3 0 1
-e 0 -4 0 1
+e 0 0 0 -2
 over
