@@ -25,6 +25,7 @@ class World(){
 
 		fun initialize(){
 			val w = currentWindow ?: return
+			log.doEcho = false
 			projectionMatrix.perspective(Mathf.toRadians(fov),w.width.toFloat() / w.height.toFloat(), 0.01f, 100f)
 			lookAtMatrix.lookAt(Vector3f(0f, 0f, 0f), Vector3f(0f, 0f, -1f), Vector3f(0f, 1f, 0f))
 			playerPosition = Vector3f(0f, 0f, 0f)

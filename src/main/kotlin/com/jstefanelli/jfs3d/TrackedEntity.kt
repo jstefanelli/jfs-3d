@@ -52,19 +52,15 @@ class TrackedEntity (val type: Entity, override var position: Vector3f, var orie
         //if(angle < 0)
             //angle += Mathf.Pif * 2f
 
-        World.log.log("ENTITY", "Angle: " + Mathf.toGrad(angle))
         val myOrientation = Quaternionf()
-        World.log.log("ENTITY", "myOrientation 0: " + myOrientation)
         myOrientation.rotateAxis(angle, 0f, 1f, 0f)
-        World.log.log("ENTITY", "myOrientation 1: " + myOrientation)
         mvmt.rotate(myOrientation)
-        World.log.log("ENTITY", "mvmt: " + mvmt)
+
         val p = map.rayCastToEntity(position, myOrientation, false, this)
 
         World.log.log("ENTITY", "RayCast result: " + (p.first?.toString() ?: "not found"))
         if(p.first ?: return == map.player){
             World.log.log("ENTITY", "Found player")
-            System.out.println("Found player")
 
             orientation = myOrientation
 
