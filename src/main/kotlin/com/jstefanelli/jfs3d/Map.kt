@@ -3,6 +3,7 @@ package com.jstefanelli.jfs3d
 import com.jstefanelli.jfs3d.engine.*
 import com.jstefanelli.jfs3d.engine.geometry.rect
 import org.joml.Quaternionf
+import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
 import java.io.InputStream
@@ -28,8 +29,11 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false) {
 	val player: Player = Player()
 
 	var safetyDistance: Float = 0.03f
+	var myFont: BaseFont? = null
 
     companion object {
+	    @JvmStatic
+	    private val TAG = "MAP"
         private val cubeColor = Pattern.compile("^cc\\s+$floatValuePattern\\s+$floatValuePattern\\s+$floatValuePattern\\s+$floatValuePattern")
         private val cubeRegex = Pattern.compile("^c\\s+$floatValuePattern\\s+$floatValuePattern\\s+$floatValuePattern")
         private val floorRegex = Pattern.compile("^fl\\s+$floatValuePattern\\s+$floatValuePattern\\s+$floatValuePattern\\s+$floatValuePattern")
@@ -39,6 +43,7 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false) {
         private val overRegex = Pattern.compile("^over")
 		private val entityTypeRegex = Pattern.compile("^et\\s+(\\d+)\\s+(.+)")
 		private val entityRegex = Pattern.compile("^e\\s+(\\d+)\\s+$floatValuePattern\\s+$floatValuePattern\\s+$floatValuePattern")
+	    private val fontRegex = Pattern.compile("^font\\s+(.+)")
     }
 
 
@@ -52,6 +57,7 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false) {
         var lastColor = Vector4f(0f, 0f, 1f, 1f)
         var lastTexture: Texture? = null
         var mode = false
+	    var selectedFont = "C:\\Windows\\Fonts\\Arial.ttf"
 
         while(true){
             if(!interactive && !reader.hasNextLine()) {
@@ -146,7 +152,14 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false) {
 				val y = res.group(3).toFloat()
 				val z = res.group(4).toFloat()
 				entityList.add(TrackedEntity(entityTypes.get(index) ?: return, Vector3f(x, y, z)))
+				continue
             }
+	        if(fontRegex.matcher(line).matches()){
+				val res = fontRegex.matcher(line)
+		        res.find()
+		        selectedFont = res.group(1)
+		        continue
+	        }
         }
         for(p in entityList){
             p.load()
@@ -155,6 +168,14 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false) {
 	    val l = floorTexture?.load()
 		if(l == false) System.err.println("Failed to load floor texture")
 
+		try{
+			myFont = BaseFont(selectedFont)
+		}catch(e: Exception){
+			myFont = BaseFont("C:\\Window\\Fonts\\Arial.ttf")
+		}
+
+	    myFont?.fontHeight = 100f
+	    myFont?.load()
 
         explosion = JSpriteType("textures/frames/explosion.jfr")
         explosion?.load()
@@ -192,6 +213,8 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false) {
 	    }
 
 		glClear(GL_DEPTH_BUFFER_BIT)
+
+	    myFont?.drawTextAt("Health: " + player.lp, Vector2f(10f, 10f), Vector4f(0f, 0f, 0.2f, 1f), 0.25f)
 
         synchronized(explosions){
             for(i in explosions){
