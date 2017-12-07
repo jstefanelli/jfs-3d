@@ -1,9 +1,7 @@
 package com.jstefanelli.jfs3d
 
 import com.jstefanelli.jfs3d.engine.*
-import org.joml.AxisAngle4f
-import org.joml.Quaternionf
-import org.joml.Vector3f
+import org.joml.*
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWKeyCallback
 import org.lwjgl.opengl.GL11.*
@@ -35,8 +33,6 @@ class Main(){
 
         World.currentWindow = window
 
-		System.out.println("Write map: ")
-
 		val f = File("map.jmp")
 
         map = if(f.exists()) {
@@ -45,7 +41,7 @@ class Main(){
             Map(System.`in`, true)
         }
 
-		System.out.println("Load start")
+		World.log.log(TAG, "Load start")
 
 		World.initialize()
 
@@ -84,12 +80,10 @@ class Main(){
 
 		JSpriteType.JSpriteInstance.initialize()
 
-
-
 		World.playerPosition = Vector3f(0f, 0f, -1f)
 
 		loaded = true
-		System.out.println("Load over")
+		World.log.log(TAG,"Load over")
 	}
 
 	fun drawGL(){
@@ -187,6 +181,9 @@ class Main(){
         {
             Main()
         }
+
+	    @JvmStatic
+	    val TAG = "MAIN"
     }
 
 }

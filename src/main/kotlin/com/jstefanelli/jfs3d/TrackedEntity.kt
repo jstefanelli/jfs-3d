@@ -47,7 +47,7 @@ class TrackedEntity (val type: Entity, override var position: Vector3f, var orie
         val mvmt = Vector3f(0f, 0f, -mvmtSpeed)
         val targetPos = Vector3f(World.playerPosition)
         targetPos.sub(position)
-        var angle = Mathf.angleFromOrigin(targetPos)
+        val angle = Mathf.angleFromOrigin(targetPos)
 
         //if(angle < 0)
             //angle += Mathf.Pif * 2f
@@ -58,9 +58,9 @@ class TrackedEntity (val type: Entity, override var position: Vector3f, var orie
 
         val p = map.rayCastToEntity(position, myOrientation, false, this)
 
-        World.log.log("ENTITY", "RayCast result: " + (p.first?.toString() ?: "not found"))
+        //World.log.log("ENTITY", "RayCast result: " + (p.first?.toString() ?: "not found"))
         if(p.first ?: return == map.player){
-            World.log.log("ENTITY", "Found player")
+            //World.log.log("ENTITY", "Found player")
 
             orientation = myOrientation
 
@@ -69,7 +69,7 @@ class TrackedEntity (val type: Entity, override var position: Vector3f, var orie
 
             if(map.validateMovement(mvmt, true, this)){
                 position = mvmt
-                World.log.log("ENTITY", "Moved entity to: " + mvmt)
+                //World.log.log("ENTITY", "Moved entity to: " + mvmt)
             }
 
             val time = System.currentTimeMillis()
@@ -81,9 +81,6 @@ class TrackedEntity (val type: Entity, override var position: Vector3f, var orie
                 val inst = e?.makeInstance() ?: return
                 ex.add(Pair(position, inst))
             }
-
-
-
         }
 
 

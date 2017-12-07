@@ -2,6 +2,7 @@ package com.jstefanelli.jfs3d.engine
 
 import org.joml.Matrix4f
 import org.joml.Quaternionf
+import org.joml.Vector2f
 import org.joml.Vector3f
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL20.*
@@ -25,6 +26,19 @@ fun makeMvp(position: Vector3f, orientation: Quaternionf, buffer: FloatBuffer, i
     World.projectionMatrix.mul(mvpMat, mvpMat)
 
     mvpMat.get(buffer)
+    buffer.position(index)
+}
+
+fun makeMvpText(position: Vector2f, buffer: FloatBuffer, index: Int, scale: Vector2f = Vector2f(1.0f, 1.0f)){
+    val model = Matrix4f()
+	model.translate(position.x, position.y, 0f)
+    model.scale(scale.x, scale.y, 1f)
+
+    val myMat = Matrix4f()
+    World.lookAtMatrix.mul(model, myMat)
+    World.textProjectionMatrix.mul(myMat, myMat)
+
+    myMat.get(buffer)
     buffer.position(index)
 }
 

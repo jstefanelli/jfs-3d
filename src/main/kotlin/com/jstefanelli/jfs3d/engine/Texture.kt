@@ -8,6 +8,13 @@ import java.nio.IntBuffer
 import java.nio.ByteBuffer
 
 class Texture(private val filePath: String){
+
+    companion object {
+        @JvmStatic
+	    val TAG = "TEXTURE"
+    }
+
+
     var textureId: Int = -1
 
     var loaded = false
@@ -22,7 +29,7 @@ class Texture(private val filePath: String){
             val comp: IntBuffer = it.mallocInt(1)
             stbi_set_flip_vertically_on_load(true)
             val image: ByteBuffer = stbi_load(filePath, w, h, comp, 4) ?: return false
-	        System.out.println("Loading texture of size: " + w[0] + " " + h[0])
+			World.log.log(TAG, "Loading texture of size: " + w[0] + " " + h[0])
             val width = w.get()
             val height = h.get()
 

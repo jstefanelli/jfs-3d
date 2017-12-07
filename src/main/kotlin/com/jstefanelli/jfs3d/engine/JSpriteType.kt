@@ -18,6 +18,9 @@ import java.util.regex.Pattern
 class JSpriteType(val filePath: String) {
 
 	companion object {
+		@JvmStatic
+		val TAG = "JSPRITE"
+
 		val frameRegex: Pattern = Pattern.compile("^frame\\s+(.+)")
 		val frameTimeRegex: Pattern = Pattern.compile("^time\\s+$floatValuePattern")
 		val repeatRegex: Pattern = Pattern.compile("^repeat\\s+(true|false)")
@@ -47,6 +50,10 @@ class JSpriteType(val filePath: String) {
 
 
 		companion object {
+
+			@JvmStatic
+			val TAG = "JSPRITE/Instance"
+
 			private var vbo: Int = 0
 			private var tbo: Int = 0
 			private var mvp: FloatBuffer = BufferUtils.createFloatBuffer(16)
@@ -57,7 +64,7 @@ class JSpriteType(val filePath: String) {
 			fun initialize(){
 				if(loaded)
 					return
-
+				World.log.log(TAG, "Initializing... (Static)")
 				vbo = glGenBuffers()
 				glBindBuffer(GL_ARRAY_BUFFER, vbo)
 				glBufferData(GL_ARRAY_BUFFER, floatArrayOf(
@@ -169,7 +176,6 @@ class JSpriteType(val filePath: String) {
 					val res = frameTimeRegex.matcher(line)
 					res.find()
 					frameTime = res.group(1).toFloat()
-					System.out.println("FrameTime: " + frameTime)
 					continue
 				}
 				if(frameRegex.matcher(line).matches()){
@@ -189,6 +195,7 @@ class JSpriteType(val filePath: String) {
 			}
 		}
 
+		World.log.log(TAG, "Initialized with " + framesList.count() + " frames")
 
 		for(t in framesList)
 			t.load()

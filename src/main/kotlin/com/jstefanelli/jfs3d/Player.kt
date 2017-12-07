@@ -10,7 +10,7 @@ class Player : MappableEntity{
     override val size: Vector2f = Vector2f(.5f, .5f)
     var orientation: Quaternionf = Quaternionf()
     override var active: Boolean = true
-    var lp = 100
+    var lp = 100000
 
     override fun update(map: Map){
 
