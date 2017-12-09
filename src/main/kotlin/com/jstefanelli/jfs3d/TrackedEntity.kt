@@ -10,6 +10,11 @@ import org.joml.Vector3f
 
 class TrackedEntity (val type: Entity, override var position: Vector3f, var orientation: Quaternionf = Quaternionf()) : MappableEntity {
 
+    companion object {
+    	@JvmStatic
+        val TAG = "TrackedEntity"
+    }
+
     var drawable: Entity.EntityInstance? = null
     override val size: Vector2f = Vector2f(0.5f, 0.5f)
     override var active: Boolean = true
@@ -52,37 +57,42 @@ class TrackedEntity (val type: Entity, override var position: Vector3f, var orie
         //if(angle < 0)
             //angle += Mathf.Pif * 2f
 
-        val myOrientation = Quaternionf()
-        myOrientation.rotateAxis(angle, 0f, 1f, 0f)
-        mvmt.rotate(myOrientation)
+        var angle_grad = Mathf.toGrad(angle)
+        val myAxisAngle = AxisAngle4f(orientation)
+        angle_grad -= Mathf.toGrad(if(myAxisAngle.angle != 0f) {myAxisAngle.y * myAxisAngle.angle} else{ 0f })
+        
+        if((angle_grad in -45.0f..45.0f) || (angle_grad in 315f..360f)){
+	        val myOrientation = Quaternionf()
+	        myOrientation.rotateAxis(angle, 0f, 1f, 0f)
+	        mvmt.rotate(myOrientation)
 
-        val p = map.rayCastToEntity(position, myOrientation, false, this)
+	        val p = map.rayCastToEntity(position, myOrientation, false, this)
 
-        //World.log.log("ENTITY", "RayCast result: " + (p.first?.toString() ?: "not found"))
-        if(p.first ?: return == map.player){
-            //World.log.log("ENTITY", "Found player")
+	        //World.log.log("ENTITY", "RayCast result: " + (p.first?.toString() ?: "not found"))
+	        if(p.first ?: return == map.player){
+		        //World.log.log("ENTITY", "Found player")
 
-            orientation = myOrientation
+		        orientation = myOrientation
 
-            //mvmt.rotate(myOrientation)
-            mvmt.add(position)
+		        //mvmt.rotate(myOrientation)
+		        mvmt.add(position)
 
-            if(map.validateMovement(mvmt, true, this)){
-                position = mvmt
-                //World.log.log("ENTITY", "Moved entity to: " + mvmt)
-            }
+		        if(map.validateMovement(mvmt, true, this)){
+			        position = mvmt
+			        //World.log.log("ENTITY", "Moved entity to: " + mvmt)
+		        }
 
-            val time = System.currentTimeMillis()
-            if(time - lastShot > fireRate){
-                map.player.onHit()
-                lastShot = time
-                val ex = map.explosions
-                val e = map.explosion
-                val inst = e?.makeInstance() ?: return
-                ex.add(Pair(position, inst))
-            }
+		        val time = System.currentTimeMillis()
+		        if(time - lastShot > fireRate){
+			        map.player.onHit()
+			        lastShot = time
+			        val ex = map.explosions
+			        val e = map.explosion
+			        val inst = e?.makeInstance() ?: return
+			        ex.add(Pair(position, inst))
+		        }
+	        }
         }
-
 
     }
 
