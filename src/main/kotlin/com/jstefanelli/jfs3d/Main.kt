@@ -98,7 +98,7 @@ class Main(){
         if(time - lastTime < 1000L){
             frames++
         }else{
-            System.out.println("FPS: " + frames)
+            World.log.log(TAG, "FPS: " + frames)
             frames = 0
             lastTime = time
         }
