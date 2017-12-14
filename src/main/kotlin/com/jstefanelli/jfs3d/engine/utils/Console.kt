@@ -128,7 +128,7 @@ class Console(var parser: CommandParser?, val font: BaseFont, var color: Vector4
             load()
         }
 
-        makeMvpText(Vector2f(0f, (World.currentWindow?.height ?: return).toFloat() - height), mvp, 0, Vector2f((World.currentWindow?.width ?: return).toFloat(), height))
+        makeMvpUi(Vector2f(0f, (World.currentWindow?.height ?: return).toFloat() - height), mvp, 0, Vector2f((World.currentWindow?.width ?: return).toFloat(), height))
 
         val p = World.color ?: return
 

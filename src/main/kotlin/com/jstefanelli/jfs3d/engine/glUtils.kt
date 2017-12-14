@@ -42,6 +42,19 @@ fun makeMvpText(position: Vector2f, buffer: FloatBuffer, index: Int, scale: Vect
     buffer.position(index)
 }
 
+fun makeMvpUi(position: Vector2f, buffer: FloatBuffer, index: Int, scale: Vector2f = Vector2f(1.0f, 1.0f)){
+	val model = Matrix4f()
+	model.translate(position.x, position.y, 0f)
+	model.scale(scale.x, scale.y, 1f)
+
+	val myMat = Matrix4f()
+	World.lookAtMatrix.mul(model, myMat)
+	World.uiProjectionMatrix.mul(myMat, myMat)
+
+	myMat.get(buffer)
+	buffer.position(index)
+}
+
 fun printGlError(msg: String? = null){
     val err = glGetError()
 

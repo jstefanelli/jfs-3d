@@ -100,13 +100,13 @@ class BaseFont (val filePath: String){
 			tbo = glGenBuffers()
 			glBindBuffer(GL_ARRAY_BUFFER, tbo)
 			glBufferData(GL_ARRAY_BUFFER, floatArrayOf(
+					1.0f, 0.0f,
 					1.0f, 1.0f,
-					1.0f, 0.0f,
-					0.0f, 1.0f,
-
-					1.0f, 0.0f,
 					0.0f, 0.0f,
-					0.0f, 1.0f
+
+					1.0f, 1.0f,
+					0.0f, 1.0f,
+					0.0f, 0.0f
 			), GL_STATIC_DRAW)
 
 			staticLoaded = true
@@ -143,6 +143,7 @@ class BaseFont (val filePath: String){
 
 		MemoryStack.stackPush().use {
 			val sh = World.text?: return
+			pos.y = -pos.y
 
 			val pCodePoint: IntBuffer = it.mallocInt(1)
 
@@ -191,25 +192,19 @@ class BaseFont (val filePath: String){
 				var y0 = q.y0()
 				var y1 = q.y1()
 
-				val height = (y1 - y0)
-				y0 += height
-				y1 += height
+				val height = y1 - y0
 				x0 *= scale
 				x1 *= scale
 				y0 *= scale
 				y1 *= scale
 
-				val drawPos = Vector2f(x0, y0)
+				val drawPos = Vector2f(x0, (World.currentWindow?.height ?: return).toFloat() + y0)
 				drawPos.add(pos)
 				val drawScale = Vector2f((x1 - x0),(y1 - y0))
 
 				makeMvpText(drawPos, mvp, 0, drawScale)
 
 				val myUv = Matrix3f()
-				val s0 = q.s0()
-				val s1 = q.s1()
-				val t0 = q.t0()
-				val t1 = q.t1()
 
 				myUv.scale((q.s1() - q.s0()), (q.t1() - q.t0()), 1f)
 				myUv.m20 = q.s0()
