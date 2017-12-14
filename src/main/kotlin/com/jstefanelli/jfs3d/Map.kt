@@ -2,28 +2,36 @@ package com.jstefanelli.jfs3d
 
 import com.jstefanelli.jfs3d.engine.*
 import com.jstefanelli.jfs3d.engine.geometry.rect
+import com.jstefanelli.jfs3d.engine.utils.CommandParser
+import com.jstefanelli.jfs3d.engine.utils.Console
 import org.joml.Quaternionf
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
+import org.lwjgl.glfw.GLFWCharCallbackI
+import org.lwjgl.glfw.GLFWKeyCallbackI
 import java.io.InputStream
 import java.util.*
 import java.util.regex.Pattern
 import org.lwjgl.opengl.GL11.*
-import org.lwjgl.opengl.GL12.*
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 
 
-class Map(val mapFile: InputStream, val interactive: Boolean = false) {
+class Map(val mapFile: InputStream, val interactive: Boolean = false) : CommandParser {
 
-	private val entityList: ArrayList<MappableEntity> = ArrayList()
+    override fun parseCommand(command: String) {
+
+    }
+
+    private val entityList: ArrayList<MappableEntity> = ArrayList()
 
     private var floorColor = Vector4f(0.5f, 0.5f, 0.5f, 1f)
     private var ceilColor = Vector4f(0.3f, 0.3f, 0.3f, 1f)
 
 	private var floorTexture: Texture? = null
 	private var ceilTexture: Texture? = null
+    private var consoleInst: Console? = null
 
 	private val entityTypes: HashMap<Int, Entity> = HashMap()
 	val player: Player = Player()
@@ -174,8 +182,13 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false) {
 			myFont = BaseFont("C:\\Window\\Fonts\\Arial.ttf")
 		}
 
+
 	    myFont?.fontHeight = 100f
 	    myFont?.load()
+
+        consoleInst = Console(this, myFont ?: return)
+
+        World.currentWindow?.addKeyCb(GLFWKeyCallbackI { window, key, scancode, action, mods -> consoleInst?.parseKey(key, scancode, action, mods) })
 
         explosion = JSpriteType("textures/frames/explosion.jfr")
         explosion?.load()
@@ -214,7 +227,6 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false) {
 
 		glClear(GL_DEPTH_BUFFER_BIT)
 
-	    myFont?.drawTextAt("Health: " + player.lp, Vector2f(10f, 10f), Vector4f(0f, 0f, 0.2f, 1f), 0.25f)
 
         synchronized(explosions){
             for(i in explosions){
@@ -231,6 +243,11 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false) {
                     i++
             }
         }
+
+        glClear(GL_DEPTH_BUFFER_BIT)
+
+        myFont?.drawTextAt("Health: " + player.lp, Vector2f(10f, 10f), Vector4f(0f, 0f, 0.2f, 1f), 0.25f)
+        consoleInst?.draw()
 
     }
 

@@ -166,12 +166,10 @@ class EngineWindow(title: String?){
             if(window != 0L) {
                 var arr: Array<GLFWKeyCallbackI>? = null
                 synchronized(keyCbs, {
-                    arr = Array(keyCbs.count(), { index: Int -> keyCbs[index] })
+                    arr = keyCbs.toTypedArray()
                 })
                 for (cb in arr ?: emptyArray<GLFWKeyCallbackI>()) {
-
                     cb.invoke(window, key, scancode, action, mods)
-
                 }
             }
 		})
