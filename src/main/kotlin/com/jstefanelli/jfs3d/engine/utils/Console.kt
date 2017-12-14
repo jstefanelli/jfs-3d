@@ -13,7 +13,7 @@ import org.lwjgl.opengl.GL20.*
 import com.jstefanelli.jfs3d.engine.*
 import org.joml.Vector2f
 
-class Console(var parser: CommandParser?, val font: BaseFont, var color: Vector4f = Vector4f(0.2f, 0.2f, 0.2f, 0.4f), var height: Float = 200.0f, var lineHeight: Float = 15.0f){
+class Console(var parser: CommandParser?, val font: BaseFont, var color: Vector4f = Vector4f(0.2f, 0.2f, 0.2f, 0.4f), var height: Float = 200.0f){
 
     companion object {
         @JvmStatic
@@ -27,9 +27,6 @@ class Console(var parser: CommandParser?, val font: BaseFont, var color: Vector4
 
         @JvmStatic
         private val mvp: FloatBuffer = BufferUtils.createFloatBuffer(16)
-
-        @JvmStatic
-        private val vp: Matrix4f = Matrix4f()
 
         @JvmStatic
         fun staticLoad(){
@@ -83,7 +80,6 @@ class Console(var parser: CommandParser?, val font: BaseFont, var color: Vector4
                 return
             }
             if(key == GLFW_KEY_BACKSPACE){
-                World.log.log(TAG, "BKSP")
                 if(currentCommand.isNotEmpty())
                     currentCommand = currentCommand.substring(0 until currentCommand.length - 1)
                 return

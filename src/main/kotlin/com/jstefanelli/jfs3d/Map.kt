@@ -8,7 +8,7 @@ import org.joml.Quaternionf
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
-import org.lwjgl.glfw.GLFWCharCallbackI
+import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWKeyCallbackI
 import java.io.InputStream
 import java.util.*
@@ -38,6 +38,12 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false) : CommandP
 
 	var safetyDistance: Float = 0.03f
 	var myFont: BaseFont? = null
+
+	private var movementSpeed = 1.8f
+	private var rotateSensitivity = 3.5f
+
+	private var lastShot = 0L
+	private var shotRate = 250L
 
     companion object {
 	    @JvmStatic
@@ -186,7 +192,7 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false) : CommandP
 	    myFont?.fontHeight = 100f
 	    myFont?.load()
 
-        consoleInst = Console(this, myFont ?: return)
+        consoleInst = Console(this, myFont ?: return, Vector4f(0.2f, 0.2f, 0.2f, 0.4f), 200f)
 
         World.currentWindow?.addKeyCb(GLFWKeyCallbackI { window, key, scancode, action, mods -> consoleInst?.parseKey(key, scancode, action, mods) })
 
@@ -196,6 +202,40 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false) : CommandP
     }
 
 	fun updateMap(){
+		val win = World.currentWindow ?: return
+		if((win.window) == 0L) return
+
+		if(consoleInst?.shown != true) {
+			if (GLFW.glfwGetKey(win.window, GLFW.GLFW_KEY_A) == GLFW.GLFW_PRESS) {
+				World.playerRotation -= 0.01f * rotateSensitivity
+			}
+			if (GLFW.glfwGetKey(win.window, GLFW.GLFW_KEY_D) == GLFW.GLFW_PRESS) {
+				World.playerRotation += 0.01f * rotateSensitivity
+			}
+			if (GLFW.glfwGetKey(win.window, GLFW.GLFW_KEY_W) == GLFW.GLFW_PRESS) {
+				World.movePlayer(0f, 0f, -0.02f * movementSpeed, this)
+			}
+			if (GLFW.glfwGetKey(win.window, GLFW.GLFW_KEY_S) == GLFW.GLFW_PRESS) {
+				World.movePlayer(0f, 0f, +0.02f * movementSpeed, this)
+			}
+
+			val time = System.currentTimeMillis()
+
+			val space_status = GLFW.glfwGetKey(win.window, GLFW.GLFW_KEY_SPACE)
+			if (space_status == GLFW.GLFW_PRESS && (time - lastShot > shotRate)) {
+				val rot = Quaternionf()
+				rot.rotateAxis(-World.playerRotation, Vector3f(0f, 1f, 0f))
+				val p = rayCast(World.playerPosition, rot, true)
+				if (p.second != Float.MAX_VALUE && p.second > 0f) {
+					val pa = Pair(p.first, explosion?.makeInstance() ?: return)
+					synchronized(explosions) {
+						val ex = explosions
+						ex.add(pa)
+					}
+				}
+				lastShot = time
+			}
+		}
 		player.position = World.playerPosition
 		player.orientation.fromAxisAngleRad(0f, 1f, 0f, World.playerRotation)
 		synchronized(entityList){

@@ -14,15 +14,9 @@ class Main(){
 
 	private var loaded = false
 
-	private var movementSpeed = 1.8f
-	private var rotateSensitivity = 3.5f
-
 	private var lastTime: Long = 0
 	private var frames: Int = 0
 	private var map: Map? = null
-
-	private var lastShot = 0L
-	private var shotRate = 250L
 
 	private fun Load(){
 		if(window == null)
@@ -89,43 +83,12 @@ class Main(){
 	fun drawGL(){
 		if(!loaded)
 			Load()
-		if((window?.window ?: return) == 0L) return
-		if(glfwGetKey(window?.window ?: return, GLFW_KEY_A) == GLFW_PRESS){
-			World.playerRotation -= 0.01f * rotateSensitivity
-        }
-		if(glfwGetKey(window?.window ?: return, GLFW_KEY_D) == GLFW_PRESS){
-			World.playerRotation += 0.01f * rotateSensitivity
-        }
-		if(glfwGetKey(window?.window ?: return, GLFW_KEY_W) == GLFW_PRESS){
-			World.movePlayer(0f, 0f, -0.02f * movementSpeed, map ?: return)
-        }
-		if(glfwGetKey(window?.window ?: return, GLFW_KEY_S) == GLFW_PRESS){
-			World.movePlayer(0f, 0f, +0.02f * movementSpeed, map ?: return)
-        }
-
 
         val time = System.currentTimeMillis()
-
-		val space_status = glfwGetKey(window?.window ?: return, GLFW_KEY_SPACE)
-		if(space_status == GLFW_PRESS && (time - lastShot > shotRate)){
-            val rot = Quaternionf()
-            rot.rotateAxis(-World.playerRotation, Vector3f(0f, 1f, 0f))
-            val p = map?.rayCast(World.playerPosition, rot, true) ?: return
-            if (p.second != Float.MAX_VALUE && p.second > 0f){
-                val pa = Pair(p.first, map?.explosion?.makeInstance() ?: return)
-                synchronized(map?.explosions ?: return){
-                    val ex = map?.explosions ?: return
-					ex.add(pa)
-                }
-            }
-			lastShot = time
-        }
 
 		map?.updateMap()
 
 		map?.drawMap()
-		val demoRot = Quaternionf()
-		demoRot.fromAxisAngleRad(0f, 1f, 0f, Mathf.toRadians(90.0f))
 
 		glClear(GL_DEPTH_BUFFER_BIT)
 
@@ -156,7 +119,7 @@ class Main(){
 							window?.close()
 						}
 						GLFW_KEY_ENTER -> {
-							if(mods.or(GLFW_MOD_ALT) >= 0){
+							if(mods.and(GLFW_MOD_ALT) > 0){
 								window?.fullscreen = !(window?.fullscreen ?: return)
 							}
 						}
