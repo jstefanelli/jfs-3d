@@ -2,4 +2,5 @@ build/
 out/
 .idea/
 .gradle/
+gralde/wrapper
 src/main/log.txt
