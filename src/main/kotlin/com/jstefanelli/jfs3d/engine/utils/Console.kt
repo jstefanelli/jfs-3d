@@ -12,6 +12,7 @@ import org.lwjgl.opengl.GL15.*
 import org.lwjgl.opengl.GL20.*
 import com.jstefanelli.jfs3d.engine.*
 import org.joml.Vector2f
+import java.util.*
 
 class Console(var parser: CommandParser?, val font: BaseFont, var color: Vector4f = Vector4f(0.2f, 0.2f, 0.2f, 0.4f), var height: Float = 200.0f){
 
@@ -50,7 +51,7 @@ class Console(var parser: CommandParser?, val font: BaseFont, var color: Vector4
     }
 
     private var currentCommand: String = ""
-    private val commandHistory: ArrayList<String> = ArrayList()
+    private val commandHistory: LinkedList<String> = LinkedList()
     var loaded: Boolean = false
         get
         private set
@@ -59,7 +60,6 @@ class Console(var parser: CommandParser?, val font: BaseFont, var color: Vector4
     private fun runCommand(){
         World.log.log(TAG, "Sending console command: " + currentCommand)
         parser?.parseCommand(currentCommand)
-        commandHistory.add(currentCommand)
         currentCommand = ""
     }
 
@@ -101,6 +101,11 @@ class Console(var parser: CommandParser?, val font: BaseFont, var color: Vector4
         }
     }
 
+    fun appendToLog(value: String){
+        commandHistory.addFirst(value)
+        if(commandHistory.count() > 15)
+            commandHistory.removeLast()
+    }
 
     fun load(){
         if(!staticLoaded)
@@ -142,6 +147,12 @@ class Console(var parser: CommandParser?, val font: BaseFont, var color: Vector4
         glDisableVertexAttribArray(p.aPosLoc)
 
         font.drawTextAt(currentCommand, Vector2f(5f, (World.currentWindow?.height ?: return).toFloat() - height + 2f), Vector4f(1f, 1f, 1f, 1f), 0.2f)
+
+        var y = (World.currentWindow?.height ?: return).toFloat() - height + 2f + 15f
+        for(s in commandHistory){
+            font.drawTextAt(s, Vector2f(5f, y), Vector4f(1f, 1f, 1f, 1f), 0.2f)
+            y += 15f
+        }
     }
 }
 

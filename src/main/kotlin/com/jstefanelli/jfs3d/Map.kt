@@ -21,7 +21,7 @@ import kotlin.collections.HashMap
 class Map(val mapFile: InputStream, val interactive: Boolean = false) : CommandParser {
 
     override fun parseCommand(command: String) {
-
+        consoleInst?.appendToLog(command)
     }
 
     private val entityList: ArrayList<MappableEntity> = ArrayList()
@@ -193,7 +193,7 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false) : CommandP
 	    myFont?.load()
 
         consoleInst = Console(this, myFont ?: return, Vector4f(0.2f, 0.2f, 0.2f, 0.4f), 200f)
-
+        World.log.consoleOut = consoleInst
         World.currentWindow?.addKeyCb(GLFWKeyCallbackI { window, key, scancode, action, mods -> consoleInst?.parseKey(key, scancode, action, mods) })
 
         explosion = JSpriteType("textures/frames/explosion.jfr")
