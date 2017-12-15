@@ -22,6 +22,9 @@ class TrackedEntity (val type: Entity, override var position: Vector3f, var orie
     var mvmtSpeed = 0.01f
 
     private var lastShot = 0L
+    var loaded = false
+        get
+        private set
     var fireRate = 2500L
 
     override fun load(){
@@ -29,12 +32,17 @@ class TrackedEntity (val type: Entity, override var position: Vector3f, var orie
             type.load()
 
         drawable = type.makeInstance()
+        loaded = true
     }
 
     override fun draw(){
         if(lp > 0) {
             val d = drawable ?: return
 
+            if(!loaded) {
+                World.log.warn(TAG, "Loading in draw. This is not recommended")
+                load()
+            }
             d.drawAt(position, orientation)
         }
     }

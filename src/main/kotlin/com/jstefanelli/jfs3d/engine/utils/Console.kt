@@ -88,14 +88,19 @@ class Console(var parser: CommandParser?, val font: BaseFont, var color: Vector4
                 currentCommand += "    "
                 return
             }
+            //TODO: Gather keyboard language
+
             if(key in 0..255){
                 k = key.toChar()
+                if(k == '/'){
+                    k = '-'
+                }
                 if(shift){
                     k = k.toUpperCase()
                 }else{
                     k = k.toLowerCase()
                 }
-                if(k.isLetterOrDigit() || k.isWhitespace())
+                if(k.isLetterOrDigit() || k.isWhitespace() || k == '-' || k == '.')
                     currentCommand += k
             }
         }

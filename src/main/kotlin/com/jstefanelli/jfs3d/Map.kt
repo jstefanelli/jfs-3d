@@ -21,7 +21,40 @@ import kotlin.collections.HashMap
 class Map(val mapFile: InputStream, val interactive: Boolean = false) : CommandParser {
 
     override fun parseCommand(command: String) {
-        consoleInst?.appendToLog(command)
+        if(entityRegex.matcher(command).matches()){
+            val res = entityRegex.matcher(command)
+            res.find()
+            val index = res.group(1).toInt()
+            if(!entityTypes.containsKey(index)){
+                World.log.err(TAG, "Entity type not found. SKipping")
+            }
+            val x = res.group(2).toFloat()
+            val y = res.group(3).toFloat()
+            val z = res.group(4).toFloat()
+            val ent = TrackedEntity(entityTypes.get(index) ?: return, Vector3f(x, y, z))
+            ent.load()
+            synchronized(entityList) {
+                entityList.add(ent)
+            }
+            World.log.log(TAG, "Adding entity at position: $x/$y/$z")
+            return
+        }
+        if(cubeRegex.matcher(command).matches()){
+            val res = cubeRegex.matcher(command)
+            res.find()
+            val x = res.group(1).toFloat()
+            val y = res.group(2).toFloat()
+            val z = res.group(3).toFloat()
+            val pos = Vector3f(x, y, z)
+            synchronized(entityList) {
+                if (!cubeMode) {
+                    entityList.add(MappedCube(pos, lastColor))
+                } else {
+                    entityList.add(MappedCube(pos, lastTexture ?: return))
+                }
+            }
+            return
+        }
     }
 
     private val entityList: ArrayList<MappableEntity> = ArrayList()
@@ -44,6 +77,11 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false) : CommandP
 
 	private var lastShot = 0L
 	private var shotRate = 250L
+
+
+    private var lastColor = Vector4f(0f, 0f, 1f, 1f)
+    private var lastTexture: Texture? = null
+    private var cubeMode = false
 
     companion object {
 	    @JvmStatic
@@ -68,9 +106,6 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false) : CommandP
 
     fun parse(){
         val reader = Scanner(mapFile)
-        var lastColor = Vector4f(0f, 0f, 1f, 1f)
-        var lastTexture: Texture? = null
-        var mode = false
 	    var selectedFont = "C:\\Windows\\Fonts\\Arial.ttf"
 
         while(true){
@@ -89,14 +124,14 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false) : CommandP
                 val b = res.group(3).toFloat()
                 val a = res.group(4).toFloat()
                 lastColor = Vector4f(r, g, b, a)
-                mode = false
+                cubeMode = false
                 continue
             }
             if(cubeTexture.matcher(line).matches()){
                 val res = cubeTexture.matcher(line)
                 res.find()
                 val str = res.group(1)
-                mode = true
+                cubeMode = true
                 lastTexture = Texture(str)
                 continue
             }
@@ -114,7 +149,7 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false) : CommandP
                 val y = res.group(2).toFloat()
                 val z = res.group(3).toFloat()
                 val pos = Vector3f(x, y, z)
-                if(!mode) {
+                if(!cubeMode) {
                     entityList.add(MappedCube(pos, lastColor))
                 }else{
                     entityList.add(MappedCube(pos, lastTexture ?: return))
