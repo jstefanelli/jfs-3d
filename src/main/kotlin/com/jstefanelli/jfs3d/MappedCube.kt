@@ -15,6 +15,8 @@ class MappedCube private constructor(override var position: Vector3f) : Mappable
     var txt: Texture? = null
     var col: Vector4f? = null
     override var active: Boolean = true
+	override val blocksHit: Boolean = true
+	override val collides: Boolean = true
 
     var loaded = false
         get
@@ -64,4 +66,8 @@ class MappedCube private constructor(override var position: Vector3f) : Mappable
     override fun update(map: Map){
 
     }
+
+	override fun onCollide(e: MappableEntity) {
+
+	}
 }

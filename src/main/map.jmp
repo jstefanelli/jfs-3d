@@ -5,4 +5,6 @@ c 4 0 0
 ft textures/floor.png
 et 0 textures/entities/enemy/enemy.jen
 e 0 0 0 -2
+pt 0 textures/mag.png
+p 0 1 0 -1
 over

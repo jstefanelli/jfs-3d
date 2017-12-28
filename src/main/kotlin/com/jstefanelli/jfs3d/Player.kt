@@ -10,7 +10,10 @@ class Player : MappableEntity{
     override val size: Vector2f = Vector2f(.5f, .5f)
     var orientation: Quaternionf = Quaternionf()
     override var active: Boolean = true
+	override val blocksHit: Boolean = false
+	override val collides: Boolean = false
     var lp = 100000
+    var ammo = 100
 
     override fun update(map: Map){
 
@@ -37,4 +40,8 @@ class Player : MappableEntity{
     override fun toString(): String {
         return "Player at: " + position
     }
+
+	override fun onCollide(e: MappableEntity) {
+		//Unused
+	}
 }

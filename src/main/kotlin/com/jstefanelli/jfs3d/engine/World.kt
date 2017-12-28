@@ -56,17 +56,6 @@ class World(){
 			log.log(TAG, "World initialized.")
 		}
 
-		@JvmStatic
-		fun movePlayer(movement: Vector3f, m: Map){
-			movement.rotateAxis(playerRotation, 0f, -1f, 0f)
-			val tmp = Vector3f(playerPosition)
-			tmp.add(movement)
-			if(m.validateMovement(tmp, true)) playerPosition = tmp
-		}
 
-		@JvmStatic
-		fun movePlayer(x: Float, y: Float, z: Float, m: Map){
-			movePlayer(Vector3f(x, y, z), m)
-		}
 	}
 }

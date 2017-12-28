@@ -18,6 +18,8 @@ class TrackedEntity (val type: Entity, override var position: Vector3f, var orie
     var drawable: Entity.EntityInstance? = null
     override val size: Vector2f = Vector2f(0.5f, 0.5f)
     override var active: Boolean = true
+	override val collides: Boolean = false
+	override val blocksHit: Boolean = true
     var lp = 100
     var mvmtSpeed = 0.01f
 
@@ -57,7 +59,7 @@ class TrackedEntity (val type: Entity, override var position: Vector3f, var orie
     override fun update(map: Map){
         if(!active)
             return
-        val mvmt = Vector3f(0f, 0f, -mvmtSpeed)
+        val movement = Vector3f(0f, 0f, -mvmtSpeed)
         val targetPos = Vector3f(World.playerPosition)
         targetPos.sub(position)
         val angle = Mathf.angleFromOrigin(targetPos)
@@ -72,7 +74,7 @@ class TrackedEntity (val type: Entity, override var position: Vector3f, var orie
         if((angle_grad in -45.0f..45.0f) || (angle_grad in 315f..360f)){
 	        val myOrientation = Quaternionf()
 	        myOrientation.rotateAxis(angle, 0f, 1f, 0f)
-	        mvmt.rotate(myOrientation)
+	        movement.rotate(myOrientation)
 
 	        val p = map.rayCastToEntity(position, myOrientation, false, this)
 
@@ -83,11 +85,11 @@ class TrackedEntity (val type: Entity, override var position: Vector3f, var orie
 		        orientation = myOrientation
 
 		        //mvmt.rotate(myOrientation)
-		        mvmt.add(position)
+		        movement.add(position)
 
-		        if(map.validateMovement(mvmt, true, this)){
-			        position = mvmt
-			        //World.log.log("ENTITY", "Moved entity to: " + mvmt)
+		        if(map.validateMovement(movement, true, this)){
+			        position = movement
+			        //World.log.log("ENTITY", "Moved entity to: " + movement)
 		        }
 
 		        val time = System.currentTimeMillis()
@@ -103,6 +105,12 @@ class TrackedEntity (val type: Entity, override var position: Vector3f, var orie
         }
 
     }
+
+	override fun onCollide(e: MappableEntity) {
+		if(e is Player){
+			//Do stuff
+		}
+	}
 
     override fun toString() : String{
         return "Entity at: " + position

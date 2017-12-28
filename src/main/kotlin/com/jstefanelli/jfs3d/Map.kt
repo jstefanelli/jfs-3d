@@ -67,6 +67,7 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false) : CommandP
     private var consoleInst: Console? = null
 
 	private val entityTypes: HashMap<Int, Entity> = HashMap()
+	private val pickupTypes: HashMap<Int, MappablePickupType> = HashMap()
 	val player: Player = Player()
 
 	var safetyDistance: Float = 0.03f
@@ -95,6 +96,8 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false) : CommandP
         private val overRegex = Pattern.compile("^over")
 		private val entityTypeRegex = Pattern.compile("^et\\s+(\\d+)\\s+(.+)")
 		private val entityRegex = Pattern.compile("^e\\s+(\\d+)\\s+$floatValuePattern\\s+$floatValuePattern\\s+$floatValuePattern")
+	    private val pickupTypeRegex = Pattern.compile("^pt\\s+(\\d+)\\s+(.+)")
+	    private val pickupRegex = Pattern.compile("^p\\s+(\\d+)\\s+$floatValuePattern\\s+$floatValuePattern\\s+$floatValuePattern")
 	    private val fontRegex = Pattern.compile("^font\\s+(.+)")
     }
 
@@ -188,6 +191,7 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false) : CommandP
 				val path = res.group(2)
 				val et = Entity(path)
 				entityTypes.put(index, et)
+				continue
             }
 			if(entityRegex.matcher(line).matches()){
 				val res = entityRegex.matcher(line)
@@ -203,16 +207,48 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false) : CommandP
 				entityList.add(TrackedEntity(entityTypes.get(index) ?: return, Vector3f(x, y, z)))
 				continue
             }
+	        if(pickupTypeRegex.matcher(line).matches()){
+		        val res = pickupTypeRegex.matcher(line)
+		        res.find()
+		        val index = res.group(1).toInt()
+		        if(pickupTypes.containsKey(index)){
+		            World.log.err(TAG, "Found duplicate pickup type keys. Skipping...")
+			        continue
+		        }
+		        val path = res.group(2)
+		        val pt = MappablePickupType(path)
+		        pickupTypes.put(index, pt)
+		        continue
+	        }
+	        if(pickupRegex.matcher(line).matches()){
+		        val res = pickupRegex.matcher(line)
+		        res.find()
+		        val index = res.group(1).toInt()
+		        if(!pickupTypes.containsKey(index)){
+			        World.log.err(TAG, "Pickup type key ($index) not found. Skipping...")
+			        continue
+		        }
+		        val x = res.group(2).toFloat()
+		        val y = res.group(3).toFloat()
+		        val z = res.group(4).toFloat()
+		        val pt = pickupTypes.get(index)
+		        entityList.add(pt?.makePickup(Vector3f(x, y, z)) ?: continue)
+		        continue
+	        }
 	        if(fontRegex.matcher(line).matches()){
 				val res = fontRegex.matcher(line)
 		        res.find()
 		        selectedFont = res.group(1)
 		        continue
 	        }
+	        World.log.warn(TAG, "Ignoring line: ")
+	        World.log.warn(TAG, line)
         }
         for(p in entityList){
             p.load()
         }
+
+
 		entityList.add(player)
 	    val l = floorTexture?.load()
 		if(l == false) System.err.println("Failed to load floor texture")
@@ -236,6 +272,18 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false) : CommandP
 		
     }
 
+	fun movePlayer(movement: Vector3f){
+		movement.rotateAxis(World.playerRotation, 0f, -1f, 0f)
+		val tmp = Vector3f(World.playerPosition)
+		tmp.add(movement)
+		if(validateMovement(tmp, true))
+			World.playerPosition = tmp
+	}
+
+	fun movePlayer(x: Float, y: Float, z: Float){
+		movePlayer(Vector3f(x, y, z))
+	}
+
 	fun updateMap(){
 		val win = World.currentWindow ?: return
 		if((win.window) == 0L) return
@@ -248,17 +296,18 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false) : CommandP
 				World.playerRotation += 0.01f * rotateSensitivity
 			}
 			if (GLFW.glfwGetKey(win.window, GLFW.GLFW_KEY_W) == GLFW.GLFW_PRESS) {
-				World.movePlayer(0f, 0f, -0.02f * movementSpeed, this)
+				movePlayer(0f, 0f, -0.02f * movementSpeed)
 			}
 			if (GLFW.glfwGetKey(win.window, GLFW.GLFW_KEY_S) == GLFW.GLFW_PRESS) {
-				World.movePlayer(0f, 0f, +0.02f * movementSpeed, this)
+				movePlayer(0f, 0f, +0.02f * movementSpeed)
 			}
 
 			val time = System.currentTimeMillis()
 
 			val space_status = GLFW.glfwGetKey(win.window, GLFW.GLFW_KEY_SPACE)
-			if (space_status == GLFW.GLFW_PRESS && (time - lastShot > shotRate)) {
+			if (space_status == GLFW.GLFW_PRESS && (time - lastShot > shotRate) && player.ammo > 0) {
 				val rot = Quaternionf()
+				player.ammo--
 				rot.rotateAxis(-World.playerRotation, Vector3f(0f, 1f, 0f))
 				val p = rayCast(World.playerPosition, rot, true)
 				if (p.second != Float.MAX_VALUE && p.second > 0f) {
@@ -322,6 +371,7 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false) : CommandP
         glClear(GL_DEPTH_BUFFER_BIT)
 
         myFont?.drawTextAt("Health: " + player.lp, Vector2f(10f, 10f), Vector4f(0f, 0f, 0.2f, 1f), 0.25f)
+	    myFont?.drawTextAt("Ammo: " + player.ammo, Vector2f(10f, 30f), Vector4f(0f, 0f, 0.2f, 1f), 0.25f)
         consoleInst?.draw()
 
     }
@@ -333,11 +383,12 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false) : CommandP
 					continue
 				if(c == player && isPlayer)
 					continue
-				if(c is TrackedEntity)
-					continue
 			    if (c.active && position.x >= c.position.x - c.size.x / 2 - safetyDistance && position.x <= c.position.x + c.size.x / 2 + safetyDistance
-					    && position.z >= c.position.z - c.size.y / 2 - safetyDistance && position.z <= c.position.z + c.size.y / 2 + safetyDistance)
-				    return false
+					    && position.z >= c.position.z - c.size.y / 2 - safetyDistance && position.z <= c.position.z + c.size.y / 2 + safetyDistance) {
+				    c.onCollide(player)
+				    if (c.collides)
+					    return false
+			    }
 		    }
 	    }
         return true
@@ -388,7 +439,9 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false) : CommandP
 					continue
                 if(!c.active)
                     continue
-                val x0 = line.getX(c.position.z - c.size.y / 2)
+	            if(!c.blocksHit)
+		            continue
+	            val x0 = line.getX(c.position.z - c.size.y / 2)
                 val x1 = line.getX(c.position.z + c.size.y / 2)
 
                 if (x0 >= c.position.x - c.size.x / 2 && x0 <= c.position.x + c.size.x / 2) {
