@@ -9,6 +9,7 @@ import org.lwjgl.system.MemoryUtil
 
 interface DrawCallback{
 	fun draw()
+	fun resize()
 }
 
 class EngineWindow(title: String?){
@@ -55,46 +56,66 @@ class EngineWindow(title: String?){
 		})
 	}
 
+	val actualWidth: Int
+		get(){
+			return if(fullscreen)
+				fullScreenResolutionX
+			else
+				width
+		}
+
+	val actualHeight: Int
+		get(){
+			return if(fullscreen)
+				fullScreenResolutionY
+			else
+				height
+		}
+
 	var width : Int = 800
 		get(){
-			if(window == 0L)
-				return field
-			val width = intArrayOf(-1)
-			glfwGetWindowSize(window, width, null)
-			field = width[0]
 			return field
 		}
 		set(value){
 			field = value
-			fullScreenResolutionX = value
-			if(window == 0L)
-				return
-			val height = intArrayOf(-1)
-			glfwGetWindowSize(window, null, height)
-			glfwSetWindowSize(window, value, height[0])
+			if(window != 0L && !fullscreen) {
+				glfwSetWindowSize(window, value, height)
+				drawCb?.resize()
+			}
 		}
 
 	var height: Int = 600
 		get(){
-			if(window == 0L)
-				return field
-			val height = intArrayOf(-1)
-			glfwGetWindowSize(window, null, height)
-			field = height[0]
 			return field
 		}
 		set(value){
 			field = value
-			fullScreenResolutionY = value
-			if(window == 0L)
-				return
-			val width = intArrayOf(-1)
-			glfwGetWindowSize(window, width, null)
-			glfwSetWindowSize(window, width[0], value)
+			if(!fullscreen && window != 0L) {
+				glfwSetWindowSize(window, width, value)
+				drawCb?.resize()
+			}
 		}
 
 	var fullScreenResolutionX: Int = 800
+		get(){
+			return field
+		}
+		set(value){
+			field = value
+			if(fullscreen && window != 0L){
+				fullscreen = true
+			}
+		}
 	var fullScreenResolutionY: Int = 600
+		get(){
+			return field
+		}
+		set(value){
+			field = value
+			if(fullscreen && window != 0L){
+				fullscreen = true
+			}
+		}
 
 	var fullscreen: Boolean = false
 		get(){
@@ -117,6 +138,7 @@ class EngineWindow(title: String?){
 				if(doVsync)
 					glfwSwapInterval(1)
 			}
+			drawCb?.resize()
 		}
 
 	private var requestedExplicitGlContext = false

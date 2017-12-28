@@ -198,7 +198,7 @@ class BaseFont (val filePath: String){
 				y0 *= scale
 				y1 *= scale
 
-				val drawPos = Vector2f(x0, (World.currentWindow?.height ?: return).toFloat() + y0)
+				val drawPos = Vector2f(x0, (World.currentWindow?.actualHeight ?: return).toFloat() + y0)
 				drawPos.add(pos)
 				val drawScale = Vector2f((x1 - x0),(y1 - y0))
 

@@ -47,15 +47,23 @@ class World(){
 		fun initialize(){
 			val w = currentWindow ?: return
 			//log.doEcho = false
-			projectionMatrix.perspective(Mathf.toRadians(fov),w.width.toFloat() / w.height.toFloat(), 0.01f, 100f)
-			textProjectionMatrix.ortho2D(0f, w.width.toFloat(), w.height.toFloat(), 0f)
-			uiProjectionMatrix.ortho2D(0f, w.width.toFloat(), 0f, w.height.toFloat())
-			lookAtMatrix.lookAt(Vector3f(0f, 0f, 0f), Vector3f(0f, 0f, -1f), Vector3f(0f, 1f, 0f))
+			resize()
 			playerPosition = Vector3f(0f, 0f, 0f)
 			playerRotation = 0f
 			log.log(TAG, "World initialized.")
 		}
 
-
+		@Override
+		fun resize(){
+			val w = currentWindow ?: return
+			projectionMatrix.identity()
+			projectionMatrix.perspective(Mathf.toRadians(fov),w.actualWidth.toFloat() / w.actualHeight.toFloat(), 0.01f, 100f)
+			textProjectionMatrix.identity()
+			textProjectionMatrix.ortho2D(0f, w.actualWidth.toFloat(), w.actualHeight.toFloat(), 0f)
+			uiProjectionMatrix.identity()
+			uiProjectionMatrix.ortho2D(0f, w.actualWidth.toFloat(), 0f, w.actualHeight.toFloat())
+			lookAtMatrix.identity()
+			lookAtMatrix.lookAt(Vector3f(0f, 0f, 0f), Vector3f(0f, 0f, -1f), Vector3f(0f, 1f, 0f))
+		}
 	}
 }

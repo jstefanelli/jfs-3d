@@ -134,7 +134,7 @@ class Console(var parser: CommandParser?, val font: BaseFont, var color: Vector4
             load()
         }
 
-        makeMvpUi(Vector2f(0f, (World.currentWindow?.height ?: return).toFloat() - height), mvp, 0, Vector2f((World.currentWindow?.width ?: return).toFloat(), height))
+        makeMvpUi(Vector2f(0f, (World.currentWindow?.actualHeight ?: return).toFloat() - height), mvp, 0, Vector2f((World.currentWindow?.actualWidth ?: return).toFloat(), height))
 
         val p = World.color ?: return
 
@@ -151,9 +151,9 @@ class Console(var parser: CommandParser?, val font: BaseFont, var color: Vector4
 
         glDisableVertexAttribArray(p.aPosLoc)
 
-        font.drawTextAt(currentCommand, Vector2f(5f, (World.currentWindow?.height ?: return).toFloat() - height + 2f), Vector4f(1f, 1f, 1f, 1f), 0.2f)
+        font.drawTextAt(currentCommand, Vector2f(5f, (World.currentWindow?.actualHeight ?: return).toFloat() - height + 2f), Vector4f(1f, 1f, 1f, 1f), 0.2f)
 
-        var y = (World.currentWindow?.height ?: return).toFloat() - height + 2f + 15f
+        var y = (World.currentWindow?.actualHeight ?: return).toFloat() - height + 2f + 15f
         for(s in commandHistory){
             font.drawTextAt(s, Vector2f(5f, y), Vector4f(1f, 1f, 1f, 1f), 0.2f)
             y += 15f

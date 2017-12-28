@@ -18,7 +18,7 @@ import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 
 
-class Map(val mapFile: InputStream, val interactive: Boolean = false) : CommandParser {
+class Map(val mapFile: InputStream, val interactive: Boolean = false, val cfg: Config) : CommandParser {
 
     override fun parseCommand(command: String) {
         if(entityRegex.matcher(command).matches()){
@@ -55,6 +55,33 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false) : CommandP
             }
             return
         }
+	    if(resRegex.matcher(command).matches()){
+		    val w = World.currentWindow ?: return
+		    val res = resRegex.matcher(command)
+		    res.find()
+		    val x = res.group(1).toInt()
+		    val y = res.group(2).toInt()
+		    if(w.fullscreen){
+			    w.fullScreenResolutionX = x
+			    w.fullScreenResolutionY = y
+			    cfg.fsResolutionX = x
+			    cfg.fsResolutionY = y
+		    }else{
+			    w.width = x
+			    w.height = y
+			    cfg.resolutionX = x
+			    cfg.resolutionY = y
+		    }
+
+		    cfg.saveToFile(Config.defaultPath)
+		    return
+	    }
+	    if(fullScreenRegex.matcher(command).matches()){
+		    val w = World.currentWindow ?: return
+		    w.fullscreen = !w.fullscreen
+		    cfg.fullscreen = w.fullscreen
+		    cfg.saveToFile(Config.defaultPath)
+	    }
     }
 
     private val entityList: ArrayList<MappableEntity> = ArrayList()
@@ -99,6 +126,8 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false) : CommandP
 	    private val pickupTypeRegex = Pattern.compile("^pt\\s+(\\d+)\\s+(.+)")
 	    private val pickupRegex = Pattern.compile("^p\\s+(\\d+)\\s+$floatValuePattern\\s+$floatValuePattern\\s+$floatValuePattern")
 	    private val fontRegex = Pattern.compile("^font\\s+(.+)")
+	    private val resRegex = Pattern.compile("^set-resolution\\s+(\\d+)\\s+(\\d+)")
+	    private val fullScreenRegex = Pattern.compile("^switch-fs")
     }
 
 

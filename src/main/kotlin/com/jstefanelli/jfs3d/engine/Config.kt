@@ -7,21 +7,33 @@ import javax.xml.bind.JAXBContext
 import javax.xml.bind.Marshaller
 import javax.xml.bind.annotation.*
 
-@XmlRootElement
+@XmlRootElement(name = "Config")
+@XmlAccessorType(XmlAccessType.FIELD)
 class Config {
 
-	@XmlElement
+	@field:XmlElement
 	var resolutionX: Int = 800
-	@XmlElement
+	@field:XmlElement
 	var resolutionY: Int = 600
-	@XmlElement
+	@field:XmlElement
 	var fsResolutionX: Int = 1280
-	@XmlElement
+	@field:XmlElement
 	var fsResolutionY: Int = 720
-	@XmlElement
+	@field:XmlElement
 	var fullscreen: Boolean = false
-	@XmlElement
+	@field:XmlElement
 	var useGl3: Boolean = false
+
+	fun saveToFile(path: String){
+		val file = File(path)
+		val ctx = JAXBContext.newInstance(Config::class.java)
+
+		val m = ctx.createMarshaller()
+		m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true)
+		val writer = FileWriter(file)
+		m.marshal(this, writer)
+		writer.close()
+	}
 
 	companion object {
 
@@ -29,23 +41,27 @@ class Config {
 		fun LoadFromFile(path: String): Config?{
 			val file: File = File(path)
 
-			val ctx = JAXBContext.newInstance(Config.javaClass)
+			val ctx = JAXBContext.newInstance(Config::class.java)
 			if(!file.exists()) {
 				val cf = Config()
 				val m = ctx.createMarshaller()
 				m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true)
-				m.marshal(cf, FileWriter(file))
+				val writer = FileWriter(file)
+				m.marshal(cf, writer)
+				writer.close()
 
 				return cf
 			}
 
 			val marsh = ctx.createUnmarshaller()
 
-			return marsh.unmarshal(file) as Config
+			return marsh.unmarshal(file) as Config?
 		}
 
 		@JvmStatic
-		val default: Config? = LoadFromFile("defaultConfig.xml")
+		val defaultPath: String = "defaultConfig.xml"
 
+		@JvmStatic
+		val default: Config? = LoadFromFile(defaultPath)
 	}
 }

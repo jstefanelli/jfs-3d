@@ -17,6 +17,7 @@ class Main(){
 	private var lastTime: Long = 0
 	private var frames: Int = 0
 	private var map: Map? = null
+	private val config: Config = Config.default!!
 
 	private fun Load(){
 		if(window == null)
@@ -30,9 +31,9 @@ class Main(){
 		val f = File("map.jmp")
 
         map = if(f.exists()) {
-            Map(FileInputStream(f))
+            Map(FileInputStream(f), false, config)
         }else {
-            Map(System.`in`, true)
+            Map(System.`in`, true, config)
         }
 
 		World.log.log(TAG, "Load start")
@@ -107,8 +108,11 @@ class Main(){
     init{
 		window = EngineWindow("JFS-3D")
 		window?.doVsync = true
-	    window?.width = 1280
-	    window?.height = 720
+	    window?.width = config.resolutionX
+	    window?.height = config.resolutionY
+	    window?.fullScreenResolutionX = config.fsResolutionX
+	    window?.fullScreenResolutionY = config.fsResolutionY
+	    window?.fullscreen = config.fullscreen
 	    window?.make()
 
 		window?.addKeyCb(object: GLFWKeyCallback() {
@@ -132,6 +136,11 @@ class Main(){
 	    window?.drawCb = object: DrawCallback {
 		    override fun draw() {
 				drawGL()
+		    }
+
+		    override fun resize() {
+			    glViewport(0, 0, window?.actualWidth ?: return, window?.actualHeight ?: return)
+			    World.resize()
 		    }
 	    }
 
