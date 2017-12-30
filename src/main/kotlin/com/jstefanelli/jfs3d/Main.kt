@@ -26,6 +26,8 @@ class Main(){
 		if(loaded)
 			return
 
+		window?.fullscreen = config.fullscreen
+
         World.currentWindow = window
 
 		val f = File("map.jmp")
@@ -47,7 +49,7 @@ class Main(){
 		glEnable(GL_BLEND)
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-		glViewport(0, 0, window?.width ?: 0, window?.height ?: 0)
+		glViewport(0, 0, window?.actualWidth ?: 0, window?.actualHeight ?: 0)
 
 		World.color = ColorShader()
 		if(!World.color!!.compile()){
@@ -112,7 +114,6 @@ class Main(){
 	    window?.height = config.resolutionY
 	    window?.fullScreenResolutionX = config.fsResolutionX
 	    window?.fullScreenResolutionY = config.fsResolutionY
-	    window?.fullscreen = config.fullscreen
 	    window?.make()
 
 		window?.addKeyCb(object: GLFWKeyCallback() {

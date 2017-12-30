@@ -120,7 +120,7 @@ class EngineWindow(title: String?){
 	var fullscreen: Boolean = false
 		get(){
 			if(window == 0L)
-				return false
+				return field
 			field = glfwGetWindowMonitor(window) != 0L
 			return field
 		}
@@ -178,7 +178,6 @@ class EngineWindow(title: String?){
 
 		glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE)
 		glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE)
-
 		window = glfwCreateWindow(if(width == -1) 800 else width, if(height == -1) 600 else height, title, MemoryUtil.NULL, MemoryUtil.NULL)
 		if(window == MemoryUtil.NULL)
 			throw RuntimeException("Failed to create window")

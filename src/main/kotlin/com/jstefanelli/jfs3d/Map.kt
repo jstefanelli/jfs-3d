@@ -14,6 +14,7 @@ import java.io.InputStream
 import java.util.*
 import java.util.regex.Pattern
 import org.lwjgl.opengl.GL11.*
+import javax.sound.midi.Track
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 
@@ -26,7 +27,8 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false, val cfg: C
             res.find()
             val index = res.group(1).toInt()
             if(!entityTypes.containsKey(index)){
-                World.log.err(TAG, "Entity type not found. SKipping")
+                World.log.err(TAG, "Entity type not found. Slipping...")
+	            return
             }
             val x = res.group(2).toFloat()
             val y = res.group(3).toFloat()
@@ -39,6 +41,28 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false, val cfg: C
             World.log.log(TAG, "Adding entity at position: $x/$y/$z")
             return
         }
+	    if(entityRotationRegex.matcher(command).matches()){
+		    val res = entityRotationRegex.matcher(command)
+		    res.find()
+		    val index = res.group(1).toInt()
+		    if(!entityTypes.containsKey(index)){
+			    System.err.println("Entity type key not found. Skipping.,,")
+			    return
+		    }
+		    val x = res.group(2).toFloat()
+		    val y = res.group(3).toFloat()
+		    val z = res.group(4).toFloat()
+		    val o = res.group(5).toFloat()
+		    val e = TrackedEntity(entityTypes.get(index) ?: return, Vector3f(x, y, z))
+		    val or = Quaternionf()
+		    or.fromAxisAngleDeg(Vector3f(0f, 1f, 0f), o)
+		    e.orientation = or
+		    synchronized(entityList) {
+			    entityList.add(e)
+		    }
+		    return
+	    }
+
         if(cubeRegex.matcher(command).matches()){
             val res = cubeRegex.matcher(command)
             res.find()
@@ -55,6 +79,23 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false, val cfg: C
             }
             return
         }
+	    if(pickupRegex.matcher(command).matches()){
+		    val res = pickupRegex.matcher(command)
+		    res.find()
+		    val index = res.group(1).toInt()
+		    if(!pickupTypes.containsKey(index)){
+			    World.log.err(TAG, "Pickup type key ($index) not found. Skipping...")
+			    return
+		    }
+		    val x = res.group(2).toFloat()
+		    val y = res.group(3).toFloat()
+		    val z = res.group(4).toFloat()
+		    val pt = pickupTypes.get(index)
+		    synchronized(entityList) {
+			    entityList.add(pt?.makePickup(Vector3f(x, y, z)) ?: return)
+		    }
+		    return
+	    }
 	    if(resRegex.matcher(command).matches()){
 		    val w = World.currentWindow ?: return
 		    val res = resRegex.matcher(command)
@@ -114,20 +155,21 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false, val cfg: C
     companion object {
 	    @JvmStatic
 	    private val TAG = "MAP"
-        private val cubeColor = Pattern.compile("^cc\\s+$floatValuePattern\\s+$floatValuePattern\\s+$floatValuePattern\\s+$floatValuePattern")
-        private val cubeRegex = Pattern.compile("^c\\s+$floatValuePattern\\s+$floatValuePattern\\s+$floatValuePattern")
-        private val floorRegex = Pattern.compile("^fl\\s+$floatValuePattern\\s+$floatValuePattern\\s+$floatValuePattern\\s+$floatValuePattern")
-        private val ceilingRegex = Pattern.compile("^ce\\s+$floatValuePattern\\s+$floatValuePattern\\s+$floatValuePattern\\s+$floatValuePattern")
-        private val cubeTexture = Pattern.compile("^ct (.+)")
-	    private val floorTextureRegex = Pattern.compile("^ft (.+)")
-        private val overRegex = Pattern.compile("^over")
-		private val entityTypeRegex = Pattern.compile("^et\\s+(\\d+)\\s+(.+)")
-		private val entityRegex = Pattern.compile("^e\\s+(\\d+)\\s+$floatValuePattern\\s+$floatValuePattern\\s+$floatValuePattern")
-	    private val pickupTypeRegex = Pattern.compile("^pt\\s+(\\d+)\\s+(.+)")
-	    private val pickupRegex = Pattern.compile("^p\\s+(\\d+)\\s+$floatValuePattern\\s+$floatValuePattern\\s+$floatValuePattern")
-	    private val fontRegex = Pattern.compile("^font\\s+(.+)")
-	    private val resRegex = Pattern.compile("^set-resolution\\s+(\\d+)\\s+(\\d+)")
-	    private val fullScreenRegex = Pattern.compile("^switch-fs")
+        private val cubeColor = Pattern.compile("^cc\\s+$floatValuePattern\\s+$floatValuePattern\\s+$floatValuePattern\\s+$floatValuePattern\\s*$")
+        private val cubeRegex = Pattern.compile("^c\\s+$floatValuePattern\\s+$floatValuePattern\\s+$floatValuePattern\\s*$")
+        private val floorRegex = Pattern.compile("^fl\\s+$floatValuePattern\\s+$floatValuePattern\\s+$floatValuePattern\\s+$floatValuePattern\\s*$")
+        private val ceilingRegex = Pattern.compile("^ce\\s+$floatValuePattern\\s+$floatValuePattern\\s+$floatValuePattern\\s+$floatValuePattern\\s*$")
+        private val cubeTexture = Pattern.compile("^ct (.+)\\s*$")
+	    private val floorTextureRegex = Pattern.compile("^ft (.+)\\s*$")
+        private val overRegex = Pattern.compile("^over\\s*$")
+		private val entityTypeRegex = Pattern.compile("^et\\s+(\\d+)\\s+(.+)\\s*$")
+		private val entityRegex = Pattern.compile("^e\\s+(\\d+)\\s+$floatValuePattern\\s+$floatValuePattern\\s+$floatValuePattern\\s*$")
+	    private val entityRotationRegex = Pattern.compile("^e\\s+(\\d+)\\s+$floatValuePattern\\s+$floatValuePattern\\s+$floatValuePattern\\s+$floatValuePattern\\s*$")
+	    private val pickupTypeRegex = Pattern.compile("^pt\\s+(\\d+)\\s+(.+)\\s*$")
+	    private val pickupRegex = Pattern.compile("^p\\s+(\\d+)\\s+$floatValuePattern\\s+$floatValuePattern\\s+$floatValuePattern\\s*$")
+	    private val fontRegex = Pattern.compile("^font\\s+(.+)\\s*$")
+	    private val resRegex = Pattern.compile("^set-resolution\\s+(\\d+)\\s+(\\d+)\\s*$")
+	    private val fullScreenRegex = Pattern.compile("^switch-fs\\s*$")
     }
 
 
@@ -222,6 +264,25 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false, val cfg: C
 				entityTypes.put(index, et)
 				continue
             }
+	        if(entityRotationRegex.matcher(line).matches()){
+		        val res = entityRotationRegex.matcher(line)
+		        res.find()
+		        val index = res.group(1).toInt()
+		        if(!entityTypes.containsKey(index)){
+			        System.err.println("Entity type key not found. Skipping.,,")
+			        continue
+		        }
+		        val x = res.group(2).toFloat()
+		        val y = res.group(3).toFloat()
+		        val z = res.group(4).toFloat()
+		        val o = res.group(5).toFloat()
+		        val e = TrackedEntity(entityTypes.get(index) ?: return, Vector3f(x, y, z))
+				val or = Quaternionf()
+		        or.fromAxisAngleDeg(Vector3f(0f, 1f, 0f), o)
+		        e.orientation = or
+		        entityList.add(e)
+		        continue
+	        }
 			if(entityRegex.matcher(line).matches()){
 				val res = entityRegex.matcher(line)
 				res.find()
