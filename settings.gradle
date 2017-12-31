@@ -1,2 +1,4 @@
 rootProject.name = 'jfs-3d-main'
+include 'map_editor'
+findProject(':map_editor')?.name = 'jfs_map_editor'
 
