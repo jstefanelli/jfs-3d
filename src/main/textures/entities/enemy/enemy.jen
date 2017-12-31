@@ -1,3 +1,4 @@
+do_angles true
 angle_0 enemy_0.png
 angle_1 enemy_1.png
 angle_2 enemy_2.png

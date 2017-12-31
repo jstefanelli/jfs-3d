@@ -28,7 +28,7 @@ class Log(val filePath: String) {
         w.write("ERR $tag: $msg\r\n")
         w.flush()
         consoleOut?.appendToLog("ERR: $tag: $msg")
-        if(doEcho) System.out.println("ERR: $tag: $msg")
+        if(doEcho) System.err.println("ERR: $tag: $msg")
     }
 
     fun warn(tag: String, msg: String){

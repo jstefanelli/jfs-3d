@@ -1,10 +1,7 @@
 package com.jstefanelli.jfs3d.engine
 
 import com.jstefanelli.jfs3d.engine.geometry.rect
-import org.joml.AxisAngle4f
-import org.joml.Matrix3f
-import org.joml.Quaternionf
-import org.joml.Vector3f
+import org.joml.*
 import org.lwjgl.BufferUtils
 import java.io.File
 import java.io.FileInputStream
@@ -19,6 +16,7 @@ import org.lwjgl.opengl.GL20.*
 
 class Entity(val definitionFilePath: String) {
     companion object {
+        private val do_anglesPattern = Pattern.compile("^do_angles\\s+(true|false)")
         private val angle0Pattern = Pattern.compile("^angle_0\\s+(.+)")
         private val angle1Pattern = Pattern.compile("^angle_1\\s+(.+)")
         private val angle2Pattern = Pattern.compile("^angle_2\\s+(.+)")
@@ -28,8 +26,14 @@ class Entity(val definitionFilePath: String) {
         private val angle6Pattern = Pattern.compile("^angle_6\\s+(.+)")
         private val angle7Pattern = Pattern.compile("^angle_7\\s+(.+)")
         private val uvSizePattern = Pattern.compile("^uvSize\\s+$floatValuePattern\\s+$floatValuePattern")
+
+	    @JvmStatic
+	    val TAG = "Entity"
     }
 
+    var do_angles: Boolean = true
+        get
+        private set
     var angle0Texture: Texture? = null
     var angle1Texture: Texture? = null
     var angle2Texture: Texture? = null
@@ -58,56 +62,61 @@ class Entity(val definitionFilePath: String) {
         val file = File(definitionFilePath)
 
         if(!file.exists()){
-            System.err.println("Failed to load entity: missing definition file")
+            World.log.err(TAG, "Failed to load entity: missing definition file ($definitionFilePath)")
             return
         }
 
         Scanner(FileInputStream(file)).use {
             while(it.hasNextLine()){
                 val line = it.nextLine()
+                if(do_anglesPattern.matcher(line).matches()){
+                    val res = do_anglesPattern.matcher(line)
+                    res.find()
+                    do_angles = res.group(1).toBoolean()
+                }
                 if(angle0Pattern.matcher(line).matches()){
                     val res = angle0Pattern.matcher(line)
                     res.find()
                     angle0Texture = Texture(file.parent + File.separator + res.group(1))
                     continue
                 }
-                if(angle1Pattern.matcher(line).matches()){
+                if(angle1Pattern.matcher(line).matches() && do_angles){
                     val res = angle1Pattern.matcher(line)
                     res.find()
                     angle1Texture = Texture(file.parent + File.separator + res.group(1))
                     continue
                 }
-                if(angle2Pattern.matcher(line).matches()){
+                if(angle2Pattern.matcher(line).matches() && do_angles){
                     val res = angle2Pattern.matcher(line)
                     res.find()
                     angle2Texture = Texture(file.parent + File.separator + res.group(1))
                     continue
                 }
-                if(angle3Pattern.matcher(line).matches()){
+                if(angle3Pattern.matcher(line).matches() && do_angles){
                     val res = angle3Pattern.matcher(line)
                     res.find()
                     angle3Texture = Texture(file.parent + File.separator + res.group(1))
                     continue
                 }
-                if(angle4Pattern.matcher(line).matches()){
+                if(angle4Pattern.matcher(line).matches() && do_angles){
                     val res = angle4Pattern.matcher(line)
                     res.find()
                     angle4Texture = Texture(file.parent + File.separator + res.group(1))
                     continue
                 }
-                if(angle5Pattern.matcher(line).matches()){
+                if(angle5Pattern.matcher(line).matches() && do_angles){
                     val res = angle5Pattern.matcher(line)
                     res.find()
                     angle5Texture = Texture(file.parent + File.separator + res.group(1))
                     continue
                 }
-                if(angle6Pattern.matcher(line).matches()){
+                if(angle6Pattern.matcher(line).matches() && do_angles){
                     val res = angle6Pattern.matcher(line)
                     res.find()
                     angle6Texture = Texture(file.parent + File.separator + res.group(1))
                     continue
                 }
-                if(angle7Pattern.matcher(line).matches()){
+                if(angle7Pattern.matcher(line).matches() && do_angles){
                     val res = angle7Pattern.matcher(line)
                     res.find()
                     angle7Texture = Texture(file.parent + File.separator + res.group(1))
@@ -124,61 +133,61 @@ class Entity(val definitionFilePath: String) {
         }
 
         if(angle0Texture == null){
-            System.err.println("Angle 0 not found. Entity loading failed")
+            World.log.err(TAG, "Angle 0 not found. Entity loading failed")
             return
         }else{
             angle0Texture?.load()
         }
+        if(do_angles) {
+	        if (angle1Texture == null) {
+		        World.log.err(TAG, "Angle 1 not found. Entity loading failed")
+		        return
+	        } else {
+		        angle1Texture?.load()
+	        }
 
-        if(angle1Texture == null){
-            System.err.println("Angle 1 not found. Entity loading failed")
-            return
-        }else{
-            angle1Texture?.load()
+	        if (angle2Texture == null) {
+		        World.log.err(TAG, "Angle 2 not found. Entity loading failed")
+		        return
+	        } else {
+		        angle2Texture?.load()
+	        }
+
+	        if (angle3Texture == null) {
+		        World.log.err(TAG, "Angle 3 not found. Entity loading failed")
+		        return
+	        } else {
+		        angle3Texture?.load()
+	        }
+
+	        if (angle4Texture == null) {
+		        World.log.err(TAG, "Angle 4 not found. Entity loading failed")
+		        return
+	        } else {
+		        angle4Texture?.load()
+	        }
+
+	        if (angle5Texture == null) {
+		        World.log.err(TAG, "Angle 5 not found. Entity loading failed")
+		        return
+	        } else {
+		        angle5Texture?.load()
+	        }
+
+	        if (angle6Texture == null) {
+		        World.log.err(TAG, "Angle 6 not found. Entity loading failed")
+		        return
+	        } else {
+		        angle6Texture?.load()
+	        }
+
+	        if (angle7Texture == null) {
+		        World.log.err(TAG, "Angle 7 not found. Entity loading failed")
+		        return
+	        } else {
+		        angle7Texture?.load()
+	        }
         }
-
-        if(angle2Texture == null){
-            System.err.println("Angle 2 not found. Entity loading failed")
-            return
-        }else{
-            angle2Texture?.load()
-        }
-
-        if(angle3Texture == null){
-            System.err.println("Angle 3 not found. Entity loading failed")
-            return
-        }else{
-            angle3Texture?.load()
-        }
-
-        if(angle4Texture == null){
-            System.err.println("Angle 4 not found. Entity loading failed")
-            return
-        }else{
-            angle4Texture?.load()
-        }
-
-        if(angle5Texture == null){
-            System.err.println("Angle 5 not found. Entity loading failed")
-            return
-        }else{
-            angle5Texture?.load()
-        }
-
-        if(angle6Texture == null){
-            System.err.println("Angle 6 not found. Entity loading failed")
-            return
-        }else{
-            angle6Texture?.load()
-        }
-
-        if(angle7Texture == null){
-            System.err.println("Angle 7 not found. Entity loading failed")
-            return
-        }else{
-            angle7Texture?.load()
-        }
-
         val uvMat = Matrix3f()
         uvMat.scale(uvSizeX, uvSizeY, 1f)
         uvMat.get(uvFb)
@@ -236,43 +245,46 @@ class Entity(val definitionFilePath: String) {
                 angle += 360f
             while(angle > 360.0f)
                 angle -= 360.0f
-
-            if((angle in 0f..22.5f) || (angle in 337.5f..360.0f)){
-                    return baseType.angle0Texture ?: throw RuntimeException("Entity: Required texture not found")
-            }
-            if((angle in 22.5f..67.5f)){
-                    return baseType.angle7Texture ?: throw RuntimeException("Entity: Required texture not found")
-            }
-            if((angle in 67.5f..112.5f)){
-                    return baseType.angle6Texture ?: throw RuntimeException("Entity: Required texture not found")
-            }
-            if(angle in 112.5f..157.5f){
-                    return baseType.angle5Texture ?: throw RuntimeException("Entity: Required texture not found")
-            }
-            if(angle in 157.5f..202.5f){
-                    return baseType.angle4Texture ?: throw RuntimeException("Entity: Required texture not found")
-            }
-            if(angle in 202.5f..247.5f){
-                    return baseType.angle3Texture ?: throw RuntimeException("Entity: Required texture not found")
-            }
-            if(angle in 247.5f..292.5f){
-                    return baseType.angle2Texture ?: throw RuntimeException("Entity: Required texture not found")
-            }
-            if(angle in 292.5f..337.5f){
-                    return baseType.angle1Texture ?: throw RuntimeException("Entity: Required texture not found")
+            if(baseType.do_angles) {
+	            if ((angle in 0f..22.5f) || (angle in 337.5f..360.0f)) {
+		            return baseType.angle0Texture ?: throw RuntimeException("Entity: Required texture not found")
+	            }
+	            if ((angle in 22.5f..67.5f)) {
+		            return baseType.angle7Texture ?: throw RuntimeException("Entity: Required texture not found")
+	            }
+	            if ((angle in 67.5f..112.5f)) {
+		            return baseType.angle6Texture ?: throw RuntimeException("Entity: Required texture not found")
+	            }
+	            if (angle in 112.5f..157.5f) {
+		            return baseType.angle5Texture ?: throw RuntimeException("Entity: Required texture not found")
+	            }
+	            if (angle in 157.5f..202.5f) {
+		            return baseType.angle4Texture ?: throw RuntimeException("Entity: Required texture not found")
+	            }
+	            if (angle in 202.5f..247.5f) {
+		            return baseType.angle3Texture ?: throw RuntimeException("Entity: Required texture not found")
+	            }
+	            if (angle in 247.5f..292.5f) {
+		            return baseType.angle2Texture ?: throw RuntimeException("Entity: Required texture not found")
+	            }
+	            if (angle in 292.5f..337.5f) {
+		            return baseType.angle1Texture ?: throw RuntimeException("Entity: Required texture not found")
+	            }
+            }else{
+                return baseType.angle0Texture ?: throw RuntimeException("Entity: Required texture not found")
             }
             World.log.err("ENTITY_BASE", "Failed to detect angle: " + angle)
             return baseType.angle0Texture ?: throw RuntimeException("Entity: Required Texture not loaded")
         }
 
-        fun drawAt(position: Vector3f, orientation: Quaternionf){
+        fun drawAt(position: Vector3f, orientation: Quaternionf, scale: Vector2f = Vector2f(1.0f, 1.0f)){
             if(!baseType.loaded) return
 
             val t = World.texture ?: return
 
             val rot = Quaternionf()
             rot.rotateAxis(-World.playerRotation, 0f, 1f, 0f)
-            makeMvp(position, rot, mvp, 0)
+            makeMvp(position, rot, mvp, 0, Vector3f(scale.x, scale.y, 1f))
 
             glUseProgram(t.programId)
             glUniformMatrix4fv(t.uMvpLoc, false, mvp)

@@ -83,19 +83,41 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false, val cfg: C
 		    val res = pickupRegex.matcher(command)
 		    res.find()
 		    val index = res.group(1).toInt()
-		    if(!pickupTypes.containsKey(index)){
+		    if(!entityTypes.containsKey(index)){
 			    World.log.err(TAG, "Pickup type key ($index) not found. Skipping...")
 			    return
 		    }
 		    val x = res.group(2).toFloat()
 		    val y = res.group(3).toFloat()
 		    val z = res.group(4).toFloat()
-		    val pt = pickupTypes.get(index)
+		    val pt = entityTypes.get(index) ?: return
 		    synchronized(entityList) {
-			    entityList.add(pt?.makePickup(Vector3f(x, y, z)) ?: return)
+			    entityList.add(MappablePickup(pt, (Vector3f(x, y, z)), Vector2f(1.0f, 1.0f), true))
 		    }
 		    return
 	    }
+
+
+	    if(pickupSizeRegex.matcher(command).matches()){
+		    val res = pickupSizeRegex.matcher(command)
+		    res.find()
+		    val index = res.group(1).toInt()
+		    if(!entityTypes.containsKey(index)){
+			    World.log.err(TAG, "Pickup type key ($index) not found. Skipping...")
+			    return
+		    }
+		    val x = res.group(2).toFloat()
+		    val y = res.group(3).toFloat()
+		    val z = res.group(4).toFloat()
+		    val u = res.group(5).toFloat()
+		    val v = res.group(6).toFloat()
+		    val pt = entityTypes.get(index) ?: return
+		    synchronized(entityList) {
+			    entityList.add(MappablePickup(pt, (Vector3f(x, y, z)), Vector2f(u, v), true))
+		    }
+		    return
+	    }
+
 	    if(resRegex.matcher(command).matches()){
 		    val w = World.currentWindow ?: return
 		    val res = resRegex.matcher(command)
@@ -135,7 +157,6 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false, val cfg: C
     private var consoleInst: Console? = null
 
 	private val entityTypes: HashMap<Int, Entity> = HashMap()
-	private val pickupTypes: HashMap<Int, MappablePickupType> = HashMap()
 	val player: Player = Player()
 
 	var safetyDistance: Float = 0.03f
@@ -162,11 +183,11 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false, val cfg: C
         private val cubeTexture = Pattern.compile("^ct (.+)\\s*$")
 	    private val floorTextureRegex = Pattern.compile("^ft (.+)\\s*$")
         private val overRegex = Pattern.compile("^over\\s*$")
-		private val entityTypeRegex = Pattern.compile("^et\\s+(\\d+)\\s+(.+)\\s*$")
+		private val entityTypeRegex = Pattern.compile("^et\\s+(\\d+)\\s+([^\\s]+)\\s*$")
 		private val entityRegex = Pattern.compile("^e\\s+(\\d+)\\s+$floatValuePattern\\s+$floatValuePattern\\s+$floatValuePattern\\s*$")
-	    private val entityRotationRegex = Pattern.compile("^e\\s+(\\d+)\\s+$floatValuePattern\\s+$floatValuePattern\\s+$floatValuePattern\\s+$floatValuePattern\\s*$")
-	    private val pickupTypeRegex = Pattern.compile("^pt\\s+(\\d+)\\s+(.+)\\s*$")
+	    private val entityRotationRegex = Pattern.compile("^e\\s+(\\d+)\\s+$floatValuePattern\\s+$floatValuePattern\\s+$floatValuePattern\\s+r\\s+$floatValuePattern\\s*$")
 	    private val pickupRegex = Pattern.compile("^p\\s+(\\d+)\\s+$floatValuePattern\\s+$floatValuePattern\\s+$floatValuePattern\\s*$")
+	    private val pickupSizeRegex = Pattern.compile("^p\\s+(\\d+)\\s+$floatValuePattern\\s+$floatValuePattern\\s+$floatValuePattern\\s+s\\s+$floatValuePattern\\s+$floatValuePattern\\s*$")
 	    private val fontRegex = Pattern.compile("^font\\s+(.+)\\s*$")
 	    private val resRegex = Pattern.compile("^set-resolution\\s+(\\d+)\\s+(\\d+)\\s*$")
 	    private val fullScreenRegex = Pattern.compile("^switch-fs\\s*$")
@@ -297,32 +318,36 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false, val cfg: C
 				entityList.add(TrackedEntity(entityTypes.get(index) ?: return, Vector3f(x, y, z)))
 				continue
             }
-	        if(pickupTypeRegex.matcher(line).matches()){
-		        val res = pickupTypeRegex.matcher(line)
-		        res.find()
-		        val index = res.group(1).toInt()
-		        if(pickupTypes.containsKey(index)){
-		            World.log.err(TAG, "Found duplicate pickup type keys. Skipping...")
-			        continue
-		        }
-		        val path = res.group(2)
-		        val pt = MappablePickupType(path)
-		        pickupTypes.put(index, pt)
-		        continue
-	        }
 	        if(pickupRegex.matcher(line).matches()){
 		        val res = pickupRegex.matcher(line)
 		        res.find()
 		        val index = res.group(1).toInt()
-		        if(!pickupTypes.containsKey(index)){
+		        if(!entityTypes.containsKey(index)){
 			        World.log.err(TAG, "Pickup type key ($index) not found. Skipping...")
 			        continue
 		        }
 		        val x = res.group(2).toFloat()
 		        val y = res.group(3).toFloat()
 		        val z = res.group(4).toFloat()
-		        val pt = pickupTypes.get(index)
-		        entityList.add(pt?.makePickup(Vector3f(x, y, z)) ?: continue)
+		        val pt = entityTypes.get(index) ?: continue
+		        entityList.add(MappablePickup(pt, (Vector3f(x, y, z)), Vector2f(1.0f, 1.0f), true))
+		        continue
+	        }
+	        if(pickupSizeRegex.matcher(line).matches()){
+		        val res = pickupSizeRegex.matcher(line)
+		        res.find()
+		        val index = res.group(1).toInt()
+		        if(!entityTypes.containsKey(index)){
+			        World.log.err(TAG, "Pickup type key ($index) not found. Skipping...")
+			        continue
+		        }
+		        val x = res.group(2).toFloat()
+		        val y = res.group(3).toFloat()
+		        val z = res.group(4).toFloat()
+		        val u = res.group(5).toFloat()
+		        val v = res.group(6).toFloat()
+		        val pt = entityTypes.get(index) ?: continue
+		        entityList.add(MappablePickup(pt, (Vector3f(x, y, z)), Vector2f(u, v), true))
 		        continue
 	        }
 	        if(fontRegex.matcher(line).matches()){
