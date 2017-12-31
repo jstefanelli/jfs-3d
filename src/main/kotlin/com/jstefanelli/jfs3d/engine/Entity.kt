@@ -77,49 +77,49 @@ class Entity(val definitionFilePath: String) {
                 if(angle0Pattern.matcher(line).matches()){
                     val res = angle0Pattern.matcher(line)
                     res.find()
-                    angle0Texture = Texture(file.parent + File.separator + res.group(1))
+                    angle0Texture = Texture.make(file.parent + File.separator + res.group(1))
                     continue
                 }
                 if(angle1Pattern.matcher(line).matches() && do_angles){
                     val res = angle1Pattern.matcher(line)
                     res.find()
-                    angle1Texture = Texture(file.parent + File.separator + res.group(1))
+                    angle1Texture = Texture.make(file.parent + File.separator + res.group(1))
                     continue
                 }
                 if(angle2Pattern.matcher(line).matches() && do_angles){
                     val res = angle2Pattern.matcher(line)
                     res.find()
-                    angle2Texture = Texture(file.parent + File.separator + res.group(1))
+                    angle2Texture = Texture.make(file.parent + File.separator + res.group(1))
                     continue
                 }
                 if(angle3Pattern.matcher(line).matches() && do_angles){
                     val res = angle3Pattern.matcher(line)
                     res.find()
-                    angle3Texture = Texture(file.parent + File.separator + res.group(1))
+                    angle3Texture = Texture.make(file.parent + File.separator + res.group(1))
                     continue
                 }
                 if(angle4Pattern.matcher(line).matches() && do_angles){
                     val res = angle4Pattern.matcher(line)
                     res.find()
-                    angle4Texture = Texture(file.parent + File.separator + res.group(1))
+                    angle4Texture = Texture.make(file.parent + File.separator + res.group(1))
                     continue
                 }
                 if(angle5Pattern.matcher(line).matches() && do_angles){
                     val res = angle5Pattern.matcher(line)
                     res.find()
-                    angle5Texture = Texture(file.parent + File.separator + res.group(1))
+                    angle5Texture = Texture.make(file.parent + File.separator + res.group(1))
                     continue
                 }
                 if(angle6Pattern.matcher(line).matches() && do_angles){
                     val res = angle6Pattern.matcher(line)
                     res.find()
-                    angle6Texture = Texture(file.parent + File.separator + res.group(1))
+                    angle6Texture = Texture.make(file.parent + File.separator + res.group(1))
                     continue
                 }
                 if(angle7Pattern.matcher(line).matches() && do_angles){
                     val res = angle7Pattern.matcher(line)
                     res.find()
-                    angle7Texture = Texture(file.parent + File.separator + res.group(1))
+                    angle7Texture = Texture.make(file.parent + File.separator + res.group(1))
                     continue
                 }
                 if(uvSizePattern.matcher(line).matches()){

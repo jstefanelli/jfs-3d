@@ -183,7 +183,7 @@ class JSpriteType(val filePath: String) {
 					res.find()
 					val tmpPath = res.group(1)
 					numberOfFrames++
-					framesList.add(Texture(file.parentFile.canonicalPath + File.separator + tmpPath))
+					framesList.add(Texture.make(file.parentFile.canonicalPath + File.separator + tmpPath) ?: return)
 					continue
 				}
 				if(repeatRegex.matcher(line).matches()){

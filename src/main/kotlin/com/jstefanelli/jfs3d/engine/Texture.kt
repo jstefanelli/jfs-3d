@@ -1,5 +1,6 @@
 package com.jstefanelli.jfs3d.engine
 
+import com.jstefanelli.jfs3d.engine.utils.TextureFactory
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL14.*
 import org.lwjgl.stb.STBImage.*
@@ -7,13 +8,21 @@ import org.lwjgl.system.MemoryStack
 import java.nio.IntBuffer
 import java.nio.ByteBuffer
 
-class Texture(private val filePath: String){
+class Texture private constructor(private val filePath: String){
 
     companion object {
         @JvmStatic
 	    val TAG = "TEXTURE"
-    }
 
+        @JvmStatic
+        fun make(path: String): Texture?{
+	        return if(!TextureFactory.exists(path)) {
+		        Texture(path)
+	        }else{
+		        TextureFactory.getTexture(path)
+	        }
+        }
+    }
 
     var textureId: Int = -1
 

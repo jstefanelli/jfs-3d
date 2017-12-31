@@ -227,14 +227,14 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false, val cfg: C
                 res.find()
                 val str = res.group(1)
                 cubeMode = true
-                lastTexture = Texture(str)
+                lastTexture = Texture.make(str)
                 continue
             }
 	        if(floorTextureRegex.matcher(line).matches()){
 		        val res = floorTextureRegex.matcher(line)
 		        res.find()
 		        val str = res.group(1)
-		        floorTexture = Texture(str)
+		        floorTexture = Texture.make(str)
 		        continue
 	        }
             if(cubeRegex.matcher(line).matches()) {
