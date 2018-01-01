@@ -39,19 +39,33 @@ class EngineWindow(title: String?){
 
 	private var keyCbs: ArrayList<GLFWKeyCallbackI> = ArrayList()
 
-	var drawCb: DrawCallback? = null
+	private var drawCb: ArrayList<DrawCallback> = ArrayList()
 
 	fun addKeyCb(cb: GLFWKeyCallbackI){
 		synchronized(keyCbs, {
 			keyCbs.add(cb)
 		})
-
 	}
 
 	fun removeKeyCb(cb: GLFWKeyCallbackI){
 		synchronized(keyCbs, {
 			if(keyCbs.contains(cb)){
 				keyCbs.remove(cb)
+			}
+		})
+	}
+
+	fun addDrawCb(cb: DrawCallback){
+		synchronized(drawCb, {
+			if(!drawCb.contains(cb))
+				drawCb.add(cb)
+		})
+	}
+
+	fun removeDrawCb(cb: DrawCallback){
+		synchronized(drawCb, {
+			if(drawCb.contains(cb)){
+				drawCb.remove(cb)
 			}
 		})
 	}
@@ -80,7 +94,10 @@ class EngineWindow(title: String?){
 			field = value
 			if(window != 0L && !fullscreen) {
 				glfwSetWindowSize(window, value, height)
-				drawCb?.resize()
+				synchronized(drawCb, {
+					for (cb in drawCb)
+						cb.resize()
+				})
 			}
 		}
 
@@ -92,7 +109,10 @@ class EngineWindow(title: String?){
 			field = value
 			if(!fullscreen && window != 0L) {
 				glfwSetWindowSize(window, width, value)
-				drawCb?.resize()
+				synchronized(drawCb, {
+					for(cb in drawCb)
+						cb.resize()
+				})
 			}
 		}
 
@@ -138,7 +158,10 @@ class EngineWindow(title: String?){
 				if(doVsync)
 					glfwSwapInterval(1)
 			}
-			drawCb?.resize()
+			synchronized(drawCb, {
+				for(cb in drawCb)
+					cb.resize()
+			})
 		}
 
 	private var requestedExplicitGlContext = false
@@ -218,8 +241,10 @@ class EngineWindow(title: String?){
                 glfwPollEvents()
 
                 glClear(GL_COLOR_BUFFER_BIT.or(GL_DEPTH_BUFFER_BIT))
-
-                drawCb?.draw()
+				synchronized(drawCb) {
+					for(cb in drawCb)
+						cb.draw()
+				}
                 if (window == 0L)
                     break
                 glfwSwapBuffers(window)
