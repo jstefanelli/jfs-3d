@@ -1,6 +1,7 @@
 package com.jstefanelli.jfs3d.engine.ui1
 
 import com.jstefanelli.jfs3d.engine.Texture
+import com.jstefanelli.jfs3d.engine.World
 import com.jstefanelli.jfs3d.engine.makeMvp
 import com.jstefanelli.jfs3d.engine.utils.TextureFactory
 import org.joml.Vector2f
@@ -10,14 +11,14 @@ import java.nio.FloatBuffer
 import org.lwjgl.opengl.GL15.*
 import org.lwjgl.opengl.GL11.*
 
-class UI1Render {
+class UI1Render(val utils: UI1Utils) {
 
 	companion object {
 		@JvmStatic
 		val TAG = "UI1Render"
 
 		@JvmStatic
-		private var loaded = false
+		private var staticLoaded = false
 
 		@JvmStatic
 		private val mvp: FloatBuffer = BufferUtils.createFloatBuffer(16)
@@ -31,7 +32,7 @@ class UI1Render {
 
 		@JvmStatic
 		fun staticLoad(){
-			if(loaded)
+			if(staticLoaded)
 				return
 
 			cubeVbo = glGenBuffers()
@@ -58,7 +59,7 @@ class UI1Render {
 					1.0f, 0.0f
 			), GL_STATIC_DRAW)
 
-			loaded = true
+			staticLoaded = true
 		}
 	}
 
@@ -69,7 +70,12 @@ class UI1Render {
 		}
 	}
 
-	fun drawTextureQuadAt(posPx: Vector2f, sizePx: Vector2f, texture: Texture?, utils: UI1Utils){
+	fun drawTextureQuadAt(posPx: Vector2f, sizePx: Vector2f, texture: Texture?){
+		if(!staticLoaded)
+			staticLoad()
+
+		val t = World.texture ?: return
+
 		utils.makeMvp(posPx, sizePx, mvp, 0)
 
 

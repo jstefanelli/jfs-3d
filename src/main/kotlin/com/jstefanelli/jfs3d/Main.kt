@@ -71,9 +71,7 @@ class Main(){
 		}
 		World.floor!!.load()
 
-		World.cube = Cube()
-		val cube: Cube = World.cube ?: return
-		cube.load()
+		World.initCube()
 
 		JSpriteType.JSpriteInstance.initialize()
 
@@ -134,7 +132,7 @@ class Main(){
 
         })
 
-	    window?.drawCb = object: DrawCallback {
+	    window?.addDrawCb(object: DrawCallback {
 		    override fun draw() {
 				drawGL()
 		    }
@@ -143,7 +141,7 @@ class Main(){
 			    glViewport(0, 0, window?.actualWidth ?: return, window?.actualHeight ?: return)
 			    World.resize()
 		    }
-	    }
+	    })
 
 		window?.run()
     }

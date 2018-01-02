@@ -27,16 +27,13 @@ class JSpriteType(val filePath: String) {
 	}
 
 	var numberOfFrames = 0
-		get
 		private set
 
 	var frameTime = 0f
-		get
 		private set
 
 
 	var repeat = false
-		get
 		private set
 
 

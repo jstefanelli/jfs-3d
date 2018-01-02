@@ -65,5 +65,35 @@ class World(){
 			lookAtMatrix.identity()
 			lookAtMatrix.lookAt(Vector3f(0f, 0f, 0f), Vector3f(0f, 0f, -1f), Vector3f(0f, 1f, 0f))
 		}
+
+		fun initShaders(): Boolean{
+			val t = TextureShader()
+			if(!t.load()) {
+				log.err(TAG, "Failed to load texture shader")
+				return false
+			}
+			texture = t
+
+			val c = ColorShader()
+			if(!c.compile()) {
+				log.err(TAG, "Failed to load color shader")
+				return false
+			}
+			color = c
+
+			val te = TextShader()
+			if(!te.load()) {
+				log.err(TAG, "Failed to load text shader")
+				return false
+			}
+			text = te
+			return true
+		}
+
+		fun initCube(){
+			val c = Cube()
+			c.load()
+			cube = c
+		}
 	}
 }

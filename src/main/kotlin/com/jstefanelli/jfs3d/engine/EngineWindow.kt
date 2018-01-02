@@ -87,39 +87,32 @@ class EngineWindow(title: String?){
 		}
 
 	var width : Int = 800
-		get(){
-			return field
-		}
 		set(value){
 			field = value
 			if(window != 0L && !fullscreen) {
 				glfwSetWindowSize(window, value, height)
 				synchronized(drawCb, {
 					for (cb in drawCb)
-						cb.resize()
+						if(window != 0L)
+							cb.resize()
 				})
 			}
 		}
 
 	var height: Int = 600
-		get(){
-			return field
-		}
 		set(value){
 			field = value
 			if(!fullscreen && window != 0L) {
 				glfwSetWindowSize(window, width, value)
 				synchronized(drawCb, {
 					for(cb in drawCb)
-						cb.resize()
+						if(window != 0L)
+							cb.resize()
 				})
 			}
 		}
 
 	var fullScreenResolutionX: Int = 800
-		get(){
-			return field
-		}
 		set(value){
 			field = value
 			if(fullscreen && window != 0L){
@@ -127,9 +120,6 @@ class EngineWindow(title: String?){
 			}
 		}
 	var fullScreenResolutionY: Int = 600
-		get(){
-			return field
-		}
 		set(value){
 			field = value
 			if(fullscreen && window != 0L){
@@ -160,7 +150,8 @@ class EngineWindow(title: String?){
 			}
 			synchronized(drawCb, {
 				for(cb in drawCb)
-					cb.resize()
+					if(window != 0L)
+						cb.resize()
 			})
 		}
 
@@ -206,14 +197,15 @@ class EngineWindow(title: String?){
 			throw RuntimeException("Failed to create window")
 
 
-		glfwSetKeyCallback(window, { window: Long, key: Int, scancode: Int, action: Int, mods: Int ->
+		glfwSetKeyCallback(window, { window: Long, key: Int, scanCode: Int, action: Int, mods: Int ->
             if(window != 0L) {
                 var arr: Array<GLFWKeyCallbackI>? = null
                 synchronized(keyCbs, {
                     arr = keyCbs.toTypedArray()
                 })
                 for (cb in arr ?: emptyArray<GLFWKeyCallbackI>()) {
-                    cb.invoke(window, key, scancode, action, mods)
+	                if(window != 0L)
+                        cb.invoke(window, key, scanCode, action, mods)
                 }
             }
 		})
@@ -243,7 +235,8 @@ class EngineWindow(title: String?){
                 glClear(GL_COLOR_BUFFER_BIT.or(GL_DEPTH_BUFFER_BIT))
 				synchronized(drawCb) {
 					for(cb in drawCb)
-						cb.draw()
+						if(window != 0L)
+							cb.draw()
 				}
                 if (window == 0L)
                     break

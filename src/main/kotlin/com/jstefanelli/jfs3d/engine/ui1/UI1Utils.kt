@@ -13,9 +13,12 @@ class UI1Utils(val window: EngineWindow): DrawCallback{
 	private var width = -1
 	private var height = -1
 	private var orthoMatrix = Matrix4f()
+	var render: UI1Render
+		private set
 
 	init{
 		window.addDrawCb(this)
+		render = UI1Render(this)
 		resize()
 	}
 
@@ -27,8 +30,10 @@ class UI1Utils(val window: EngineWindow): DrawCallback{
 		width = window.actualWidth
 		height = window.actualHeight
 
-		orthoMatrix.identity()
-		orthoMatrix.ortho2D(0f, width.toFloat(), 0f, height.toFloat())
+		synchronized(orthoMatrix) {
+			orthoMatrix.identity()
+			orthoMatrix.ortho2D(0f, width.toFloat(), 0f, height.toFloat())
+		}
 	}
 
 	fun makeMvp(posPx: Vector2f, sizePx: Vector2f, buffer: FloatBuffer, bufferPosition: Int){
@@ -37,7 +42,9 @@ class UI1Utils(val window: EngineWindow): DrawCallback{
 		model.scale(Vector3f(sizePx, 1f))
 
 		val myMat = Matrix4f()
-		orthoMatrix.mul(model, myMat)
+		synchronized(orthoMatrix) {
+			orthoMatrix.mul(model, myMat)
+		}
 
 		buffer.position(bufferPosition)
 		myMat.get(buffer)
