@@ -32,7 +32,7 @@ class Utils {
 					bb = b
 				}
 			}else{
-				Utils.javaClass.classLoader.getResourceAsStream(filePath).use {
+				Utils::class.java.classLoader.getResourceAsStream(filePath).use {
 					Channels.newChannel(it).use {
 						var b = BufferUtils.createByteBuffer(bufferSize)
 

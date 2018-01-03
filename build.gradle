@@ -39,7 +39,9 @@ switch ( OperatingSystem.current() ) {
 }
 
 project.ext.lwjglVersion = "3.1.5"
-project.ext.jomlVersion = "1.9.6"
+project.ext.jomlVersion = "1.9.7"
+
+println( sourceSets.getByName("main").getAllSource())
 
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
