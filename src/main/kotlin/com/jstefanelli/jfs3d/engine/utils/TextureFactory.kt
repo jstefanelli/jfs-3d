@@ -1,5 +1,6 @@
 package com.jstefanelli.jfs3d.engine.utils
 
+import com.jstefanelli.jfs3d.engine.Config
 import com.jstefanelli.jfs3d.engine.Texture
 import com.jstefanelli.jfs3d.engine.World
 import java.io.File
@@ -15,7 +16,7 @@ class TextureFactory private constructor() {
 			return textures.containsKey(File(path).canonicalPath)
 		}
 
-		fun getTexture(path: String): Texture? {
+		fun getTexture(path: String, cfg: Config): Texture? {
 			val file = File(path).canonicalFile
 			if(textures.containsKey(file.canonicalPath)){
 				return textures[file.canonicalPath]
@@ -24,7 +25,7 @@ class TextureFactory private constructor() {
 				World.log.err(TAG, "Cannot load texture: File not found")
 				return null
 			}
-			val t = Texture.make(file.canonicalPath) ?: return null
+			val t = Texture.make(file.canonicalPath, cfg) ?: return null
 			textures.put(file.canonicalPath, t)
 			return t
 		}

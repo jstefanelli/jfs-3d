@@ -1,5 +1,6 @@
 package com.jstefanelli.jfs3d.engine.ui1
 
+import com.jstefanelli.jfs3d.engine.Config
 import com.jstefanelli.jfs3d.engine.DrawCallback
 import com.jstefanelli.jfs3d.engine.EngineWindow
 import org.joml.Matrix4f
@@ -8,7 +9,7 @@ import org.joml.Vector3f
 import java.nio.FloatBuffer
 
 
-class UI1Utils(val window: EngineWindow): DrawCallback{
+class UI1Utils(val window: EngineWindow, private val cfg: Config): DrawCallback{
 
 	private var width = -1
 	private var height = -1
@@ -18,7 +19,7 @@ class UI1Utils(val window: EngineWindow): DrawCallback{
 
 	init{
 		window.addDrawCb(this)
-		render = UI1Render(this)
+		render = UI1Render(this, cfg)
 		resize()
 	}
 

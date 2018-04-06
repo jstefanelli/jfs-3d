@@ -3,6 +3,7 @@ package com.jstefanelli.jfs3d.engine.ui1
 import com.jstefanelli.jfs3d.engine.Texture
 import com.jstefanelli.jfs3d.engine.World
 import com.jstefanelli.jfs3d.engine.makeMvp
+import com.jstefanelli.jfs3d.engine.Config
 import com.jstefanelli.jfs3d.engine.utils.TextureFactory
 import org.joml.Vector2f
 import org.lwjgl.BufferUtils
@@ -11,7 +12,7 @@ import java.nio.FloatBuffer
 import org.lwjgl.opengl.GL15.*
 import org.lwjgl.opengl.GL11.*
 
-class UI1Render(val utils: UI1Utils) {
+class UI1Render(val utils: UI1Utils, private val cfg: Config) {
 
 	companion object {
 		@JvmStatic
@@ -65,7 +66,7 @@ class UI1Render(val utils: UI1Utils) {
 
 	fun preloadTextures(textures: Array<String>){
 		for(s in textures){
-			val t = TextureFactory.getTexture(s)
+			val t = TextureFactory.getTexture(s, cfg)
 			t?.load()
 		}
 	}

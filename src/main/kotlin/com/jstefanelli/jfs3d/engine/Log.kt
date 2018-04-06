@@ -11,15 +11,16 @@ class Log(val filePath: String) {
     var doEcho = true
     var consoleOut: Console? = null
     init {
-        val f: File = File(filePath)
+        val f = File(filePath)
         stream = FileOutputStream(f, false)
     }
 
-    fun log(tag: String, msg: String){
+    fun log(tag: String, msg: String, noEcho: Boolean = false){
         val w = stream?.writer() ?: return
         w.write("LOG $tag: $msg\r\n")
         w.flush()
-        consoleOut?.appendToLog("LOG: $tag: $msg")
+        if(!noEcho)
+            consoleOut?.appendToLog("LOG: $tag: $msg")
         if(doEcho) System.out.println("LOG: $tag: $msg")
     }
 

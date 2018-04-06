@@ -35,6 +35,16 @@ class EngineWindow(title: String?){
 
 			started = true
 		}
+
+		private var extensionString: String? = null
+
+		fun queryExtension(extension: String) : Boolean{
+			if(extensionString == null)
+				extensionString = glGetString(GL_EXTENSIONS)
+			var ext: String = extensionString ?: return false
+
+			return ext.contains(extension)
+		}
 	}
 
 	private var keyCbs: ArrayList<GLFWKeyCallbackI> = ArrayList()
@@ -212,6 +222,7 @@ class EngineWindow(title: String?){
 	}
 
     private var oldWindow: Long = 0L
+
 
 	fun run(){
 		glfwMakeContextCurrent(window)

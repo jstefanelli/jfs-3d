@@ -180,8 +180,8 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false, val cfg: C
         private val cubeRegex = Pattern.compile("^c\\s+$floatValuePattern\\s+$floatValuePattern\\s+$floatValuePattern\\s*$")
         private val floorRegex = Pattern.compile("^fl\\s+$floatValuePattern\\s+$floatValuePattern\\s+$floatValuePattern\\s+$floatValuePattern\\s*$")
         private val ceilingRegex = Pattern.compile("^ce\\s+$floatValuePattern\\s+$floatValuePattern\\s+$floatValuePattern\\s+$floatValuePattern\\s*$")
-        private val cubeTexture = Pattern.compile("^ct (.+)\\s*$")
-	    private val floorTextureRegex = Pattern.compile("^ft (.+)\\s*$")
+        private val cubeTexture = Pattern.compile("^ct\\s+(.+)\\s*$")
+	    private val floorTextureRegex = Pattern.compile("^ft\\s+(.+)\\s*$")
         private val overRegex = Pattern.compile("^over\\s*$")
 		private val entityTypeRegex = Pattern.compile("^et\\s+(\\d+)\\s+([^\\s]+)\\s*$")
 		private val entityRegex = Pattern.compile("^e\\s+(\\d+)\\s+$floatValuePattern\\s+$floatValuePattern\\s+$floatValuePattern\\s*$")
@@ -227,14 +227,15 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false, val cfg: C
                 res.find()
                 val str = res.group(1)
                 cubeMode = true
-                lastTexture = Texture.make(str)
+                lastTexture = Texture.make(str, cfg)
                 continue
             }
 	        if(floorTextureRegex.matcher(line).matches()){
 		        val res = floorTextureRegex.matcher(line)
 		        res.find()
 		        val str = res.group(1)
-		        floorTexture = Texture.make(str)
+		        floorTexture = Texture.make(str, cfg)
+				floorTexture?.doAnisotropy = true
 		        continue
 	        }
             if(cubeRegex.matcher(line).matches()) {
@@ -281,7 +282,7 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false, val cfg: C
 					continue
                 }
 				val path = res.group(2)
-				val et = Entity(path)
+				val et = Entity(path, cfg)
 				entityTypes.put(index, et)
 				continue
             }
@@ -382,7 +383,7 @@ class Map(val mapFile: InputStream, val interactive: Boolean = false, val cfg: C
         World.log.consoleOut = consoleInst
         World.currentWindow?.addKeyCb(GLFWKeyCallbackI { window, key, scancode, action, mods -> consoleInst?.parseKey(key, scancode, action, mods) })
 
-        explosion = JSpriteType("textures/frames/explosion.jfr")
+        explosion = JSpriteType("textures/frames/explosion.jfr", cfg)
         explosion?.load()
 		
     }

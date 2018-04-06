@@ -32,5 +32,19 @@ class Mathf {
 
             return Mathf.atan2(-point.z, point.x) - Mathf.atan2(-vector1.z, vector1.x)
         }
+
+        fun max(a: Float, b: Float) : Float{
+            if(a > b)
+                return a
+            else
+                return b
+        }
+
+        fun min(a: Float, b: Float) : Float{
+            if(a < b)
+                return a
+            else
+                return b
+        }
     }
 }

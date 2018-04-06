@@ -23,6 +23,8 @@ class Config {
 	var fullscreen: Boolean = false
 	@field:XmlElement
 	var useGl3: Boolean = false
+	@field:XmlElement
+	var anisotropyLevel: Float = 4f
 
 	fun saveToFile(path: String){
 		val file = File(path)

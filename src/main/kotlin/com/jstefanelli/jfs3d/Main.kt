@@ -99,7 +99,7 @@ class Main(){
         if(time - lastTime < 1000L){
             frames++
         }else{
-            World.log.log(TAG, "FPS: " + frames)
+            World.log.log(TAG, "FPS: " + frames, true)
             frames = 0
             lastTime = time
         }

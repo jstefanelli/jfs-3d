@@ -15,7 +15,7 @@ import java.io.FileInputStream
 import java.util.*
 import java.util.regex.Pattern
 
-class JSpriteType(val filePath: String) {
+class JSpriteType(val filePath: String,  private val cfg: Config) {
 
 	companion object {
 		@JvmStatic
@@ -180,7 +180,7 @@ class JSpriteType(val filePath: String) {
 					res.find()
 					val tmpPath = res.group(1)
 					numberOfFrames++
-					framesList.add(Texture.make(file.parentFile.canonicalPath + File.separator + tmpPath) ?: return)
+					framesList.add(Texture.make(file.parentFile.canonicalPath + File.separator + tmpPath, cfg) ?: return)
 					continue
 				}
 				if(repeatRegex.matcher(line).matches()){

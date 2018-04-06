@@ -64,7 +64,12 @@ class Main(var baseProjectFilePath: String = "") {
 			}
 
 		})
-		uiUtils = UI1Utils(mainWindow)
+		var cfg = Config.default
+		if(cfg == null) {
+			cfg = Config()
+			cfg.saveToFile(Config.defaultPath)
+		}
+		uiUtils = UI1Utils(mainWindow, cfg)
 
 		mainWindow.run()
 	}
